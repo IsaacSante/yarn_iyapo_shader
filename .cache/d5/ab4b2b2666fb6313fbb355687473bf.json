@@ -1,1 +1,0 @@
-{"id":"src/shaders/fragment.glsl","dependencies":[],"generated":{"js":"module.exports = `varying vec3 N;\nvarying vec2 vUv;\nconst vec3 L = vec3(.5, .5, 1.);\n\nvoid main() {\n  gl_FragColor = vec4(vec3(dot(L, N)), 1.);\n}`"},"sourceMaps":null,"error":null,"hash":"e653044c780049c3cbcfc98a837c824c","cacheData":{}}
