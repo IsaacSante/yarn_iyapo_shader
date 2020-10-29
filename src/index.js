@@ -7,14 +7,19 @@ import {
     Color,
     SphereBufferGeometry,
     BoxBufferGeometry,
+    DodecahedronBufferGeometry,
+    ConeBufferGeometry,
     HemisphereLight,
     DirectionalLight,
     DirectionalLightHelper,
     ShaderMaterial,
     Clock,
     Raycaster,
+    Vector3,
   } from "three";
 
+  import {spCode} from './spCode.js';
+  import {Sculpture} from './Sculpture.js';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as Stats from 'stats.js';
 import {lerp, params} from './helper.js';
@@ -23,7 +28,6 @@ import * as dat from 'dat.gui';
 import * as THREE from 'three'; //REMOVE this in production
 import fragmentShader from "./shaders/fragment.glsl";
 import vertexShader from "./shaders/vertex.glsl";
-import * as TWEEN from '@tweenjs/tween.js';
 
 const DEBUG = true; // Set to false in production
 
@@ -33,7 +37,6 @@ if(DEBUG) {
 
 let container, scene, camera, renderer, controls, gui, mesh, mouse, intersects, INTERSECTED;
 let time, clock, repoData, repoLength, raycaster;
-let modal_container, modal_title, modal_desc, modal_name, close;
 let stats;
 
 function init() {
@@ -78,6 +81,7 @@ function init() {
     });
 }
 
+
 function createCamera() {
     const aspect = container.clientWidth / container.clientHeight;
     camera = new PerspectiveCamera(35, aspect, 0.1, 1000);
@@ -101,30 +105,104 @@ function createRenderer() {
 }
 
 function createGeometries() {
-    const geometry = new BoxBufferGeometry(1, 1, 1);
+    const geometry = new BoxBufferGeometry(3, 3, 3);
+    const geometry2 = new SphereBufferGeometry(3, 3, 3);
+    const geometry3 = new DodecahedronBufferGeometry(3, 3, 3);
+    const geometry4 = new ConeBufferGeometry(3, 3, 3);
         const material = new ShaderMaterial({
         fragmentShader: fragmentShader,
         vertexShader: vertexShader,
     });
-    for ( let i = 0; i < repoLength; i ++ ){
+
+    let Apocalyptic = repoData.filter(child => child.Narrative == "Apocalyptic");
+    let Utopian = repoData.filter(child => child.Narrative == "Utopian");
+    let Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
+    let NoDomain = repoData.filter(child => child.Narrative !== "Apocalyptic" && child.Narrative !== "Utopian" && child.Narrative !== "Dystopian");
+
+    let sculpture = new Sculpture(spCode);
+    //console.log(sculpture)
+     scene.add(sculpture.mesh);
+
+    for ( let i = 0; i < Apocalyptic.length; i ++ ){
         mesh = new Mesh(geometry, material);
-        mesh.position.x = Math.random() * 800 - 200;
-        mesh.position.y = Math.random() * 100 - 100;
-        mesh.position.z = Math.random() * 10 - 10;
-        mesh.name = 'sphere';
-        mesh.userData = repoData[i]
-        scene.add(mesh);
+        mesh.position.x = Math.random() * 2 - 1;
+        mesh.position.y = Math.random() * 10 - 1;
+        mesh.position.z = Math.random() * 6 - 1;
+        mesh.rotation.x = Math.random() * 2 * Math.PI;
+        mesh.rotation.y = Math.random() * 2 * Math.PI;
+        mesh.rotation.z = Math.random() * 2 * Math.PI;
+        mesh.userData = Apocalyptic[i]
+         mesh.name = 'sphere';
+         scene.add(mesh);
+    }
+
+    for ( let i = 0; i < Utopian.length; i ++ ){
+        mesh = new Mesh(geometry2, material);
+        mesh.position.x = Math.random() * 2 - 1;
+        mesh.position.y = Math.random() * 10 - 1;
+        mesh.position.z = Math.random() * 6 - 1;
+        mesh.rotation.x = Math.random() * 2 * Math.PI;
+        mesh.rotation.y = Math.random() * 2 * Math.PI;
+        mesh.rotation.z = Math.random() * 2 * Math.PI;
+        mesh.userData = Utopian[i]
+         mesh.name = 'sphere';
+         scene.add(mesh);
+    }
+
+    for ( let i = 0; i < Dystopian.length; i ++ ){
+        mesh = new Mesh(geometry3, material);
+        mesh.position.x = Math.random() * 2 - 1;
+        mesh.position.y = Math.random() * 10 - 1;
+        mesh.position.z = Math.random() * 6 - 1;
+        mesh.rotation.x = Math.random() * 2 * Math.PI;
+        mesh.rotation.y = Math.random() * 2 * Math.PI;
+        mesh.rotation.z = Math.random() * 2 * Math.PI;
+        mesh.userData = Dystopian[i]
+         mesh.name = 'sphere';
+         scene.add(mesh);
+    }
+
+    for ( let i = 0; i < NoDomain.length; i ++ ){
+        mesh = new Mesh(geometry4, material);
+        mesh.position.x = Math.random() * 2 - 1;
+        mesh.position.y = Math.random() * 10 - 1;
+        mesh.position.z = Math.random() * 6 - 1;
+        mesh.rotation.x = Math.random() * 2 * Math.PI;
+        mesh.rotation.y = Math.random() * 2 * Math.PI;
+        mesh.rotation.z = Math.random() * 2 * Math.PI;
+        mesh.userData = NoDomain[i]
+         mesh.name = 'sphere';
+         scene.add(mesh);
     }
 }
 
+function BoxDefaultMovement(){
+    let sphere = scene.children.filter(child => child.name == 'sphere');
+    for (var i = 1, il = sphere.length; i < il; i++) {
+      sphere[i].position.x = 20 * Math.cos(time + i); 
+      sphere[i].position.y = 20 * Math.sin(time + i * 1.1);
+       sphere[i].position.z = 20 * Math.tan(time + i * 1); 
+     }
+}
+
+//  function BoxIntersctedMovement(){
+//     INTERSECTED.position.x = 0;
+//     INTERSECTED.position.y = 0;
+//     INTERSECTED.position.z = 0;
+//     console.log(INTERSECTED[0].position.z)
+//  }
+
+
  function animate(){
  requestAnimationFrame(animate);
+ BoxDefaultMovement();
  let sphere = scene.children.filter(child => child.name == 'sphere');
- for (var i = 1, il = sphere.length; i < il; i++) {
-   sphere[i].position.x = 8 * Math.cos(time + i) 
-   sphere[i].position.y = 5 * Math.sin(time + i * 0.2)
-    sphere[i].position.z = 5 * Math.tan(time + i * 0.3) 
-  }
+   intersects = raycaster.intersectObjects(sphere);
+   if (intersects.length > 0){
+  // // BoxIntersctedMovement()
+   }else{
+
+   }
   controls.update();
   renderer.render(scene, camera)
  }
@@ -136,7 +214,7 @@ function createControls() {
 function update() {
     // time = clock.getDelta();
     //time = clock.getElapsedTime();
-     time = 0.0002 * Date.now()
+     time = 0.0002 * Date.now();
 }
 
 function onMouseClick(event) {
@@ -149,12 +227,30 @@ function onMouseClick(event) {
    if (intersects.length > 0){
     if (INTERSECTED != intersects[0].object) {
         INTERSECTED = intersects[0].object;
-        console.log(INTERSECTED.userData)
+        DisplayInfo();
+       // BoxIntersctedMovement();
     }else{
         INTERSECTED = null;
     }
    }
 }
+
+function DisplayInfo(){
+    let modal = document.getElementById("newcont")
+    modal.classList.add("show");
+    let modal_name = document.getElementById("name");
+    let modal_title = document.getElementById("title");
+    let modal_desc = document.getElementById("desc");
+    let modal_img = document.getElementById("modal-img");    
+    modal_title.innerHTML = INTERSECTED.userData.artid;
+    modal_name.innerHTML = INTERSECTED.userData.aname; 
+    modal_desc.innerHTML = INTERSECTED.userData.artdes;
+    modal_img.src = INTERSECTED.userData.manimg;
+    let close = document.getElementById("close");
+    close.addEventListener("click", () => {
+        modal.classList.remove("show");
+      });
+  }
 
 document.addEventListener("click", onMouseClick, false);
 
@@ -165,6 +261,7 @@ function onWindowResize() {
 }
 
 window.addEventListener("resize", onWindowResize, false);
+
 
 init();
 animate();
