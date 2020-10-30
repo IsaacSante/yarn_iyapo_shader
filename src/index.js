@@ -18,8 +18,9 @@ import {
     Vector3,
   } from "three";
 
-  import {spCode} from './spCode.js';
-  import {Sculpture} from './Sculpture.js';
+import {spCode} from './spCode.js';
+import {sculptToThreeJSMesh} from 'shader-park-core'
+import {Sculpture} from './Sculpture.js';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as Stats from 'stats.js';
 import {lerp, params} from './helper.js';
@@ -39,7 +40,18 @@ let container, scene, camera, renderer, controls, gui, mesh, mouse, intersects, 
 let time, clock, repoData, repoLength, raycaster;
 let stats;
 
+let sculpture;
+
 function init() {
+    mouse = new THREE.Vector2();
+    
+    raycaster = new THREE.Raycaster();
+    container = document.querySelector(".container");
+    scene = new Scene();
+    scene.background = new Color("skyblue");
+    clock = new Clock(true);
+    time = 0;
+    createRenderer();
     fetch('https://iyapo-repo.glitch.me/mynewdata', {
         mode: 'cors',
         headers: {
@@ -49,20 +61,15 @@ function init() {
     .then(data => {
         repoData = data ;
         repoLength = repoData.length;
-         createGeometries();
+        createGeometries();
     }).catch(e => console.error(e));
 
-    mouse = new THREE.Vector2(), INTERSECTED;
-    raycaster = new THREE.Raycaster();
-    container = document.querySelector(".container");
-    scene = new Scene();
-    scene.background = new Color("skyblue");
-    clock = new Clock(true);
-    time = 0;
+    
+    
 
     createCamera();
     createLights();
-    createRenderer();
+    
     createControls();
 
     if(DEBUG) {
@@ -73,9 +80,12 @@ function init() {
         document.body.appendChild( stats.dom );
     }
 
+    let sculpture = new Sculpture(spCode);
+    scene.add(sculpture.mesh);
+
     renderer.setAnimationLoop(() => {
         stats.begin();
-        update();
+        animate();
         renderer.render(scene, camera);
         stats.end();
     });
@@ -119,12 +129,32 @@ function createGeometries() {
     let Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
     let NoDomain = repoData.filter(child => child.Narrative !== "Apocalyptic" && child.Narrative !== "Utopian" && child.Narrative !== "Dystopian");
 
-    let sculpture = new Sculpture(spCode);
-    //console.log(sculpture)
-     scene.add(sculpture.mesh);
+    // sculpture = new Sculpture('sphere(0.2);');
+
+    // let sculpMesh = sculptToThreeJSMesh('sphere(0.5);');
+    // // console.log(mesh);
+    // let uniformDescriptions = sculpMesh.material.uniformDescriptions;
+    // let matUniforms = sculpMesh.material.uniforms;
+
+    // let defaultUniforms = { 'sculptureCenter': 0, 'opacity': 0, 'time': 0, 'stepSize': 0, 'mouse': 0};
+    // let customUniforms = uniformDescriptions.filter(uniform => !(uniform.name in defaultUniforms));
+    
+    // //set the default value of the uniforms
+    // customUniforms.forEach(uniform => matUniforms[uniform.name].value = uniform.value);
+
+    // // default uniforms for the scupture
+    // matUniforms['sculptureCenter'].value = new Vector3();
+    // matUniforms['mouse'].value = new Vector3();
+    // matUniforms['opacity'].value = 1.0;
+    // matUniforms['time'].value = 0.0;
+    // matUniforms['stepSize'].value = 0.85;
+    
+    // // console.log(sculpture);
+    // scene.add(sculpture.mesh);
 
     for ( let i = 0; i < Apocalyptic.length; i ++ ){
         mesh = new Mesh(geometry, material);
+
         mesh.position.x = Math.random() * 2 - 1;
         mesh.position.y = Math.random() * 10 - 1;
         mesh.position.z = Math.random() * 6 - 1;
@@ -193,28 +223,29 @@ function BoxDefaultMovement(){
 //  }
 
 
- function animate(){
- requestAnimationFrame(animate);
- BoxDefaultMovement();
- let sphere = scene.children.filter(child => child.name == 'sphere');
-   intersects = raycaster.intersectObjects(sphere);
-   if (intersects.length > 0){
-  // // BoxIntersctedMovement()
-   }else{
+function animate(){
+    // requestAnimationFrame(animate);
+    BoxDefaultMovement();
+    time = 0.0002 * Date.now();
 
-   }
-  controls.update();
-  renderer.render(scene, camera)
- }
+    if(sculpture) {
+        // sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
+        //     // sculpUniforms['red'].value = Math.abs(Math.sin(time));
+        // });
+    }
+    let sphere = scene.children.filter(child => child.name == 'sphere');
+    intersects = raycaster.intersectObjects(sphere);
+    if (intersects.length > 0){
+    // // BoxIntersctedMovement()
+    }else{
+
+    }
+    controls.update();
+    renderer.render(scene, camera)
+}
 
 function createControls() {
     controls = new OrbitControls(camera, renderer.domElement);
-}
-
-function update() {
-    // time = clock.getDelta();
-    //time = clock.getElapsedTime();
-     time = 0.0002 * Date.now();
 }
 
 function onMouseClick(event) {
@@ -264,4 +295,3 @@ window.addEventListener("resize", onWindowResize, false);
 
 
 init();
-animate();
