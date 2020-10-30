@@ -80,7 +80,7 @@ function init() {
         document.body.appendChild( stats.dom );
     }
 
-    let sculpture = new Sculpture(spCode);
+    sculpture = new Sculpture(spCode);
     scene.add(sculpture.mesh);
 
     renderer.setAnimationLoop(() => {
@@ -188,8 +188,8 @@ function createGeometries() {
         mesh.rotation.y = Math.random() * 2 * Math.PI;
         mesh.rotation.z = Math.random() * 2 * Math.PI;
         mesh.userData = Dystopian[i]
-         mesh.name = 'sphere';
-         scene.add(mesh);
+        mesh.name = 'sphere';
+        scene.add(mesh);
     }
 
     for ( let i = 0; i < NoDomain.length; i ++ ){
@@ -201,18 +201,18 @@ function createGeometries() {
         mesh.rotation.y = Math.random() * 2 * Math.PI;
         mesh.rotation.z = Math.random() * 2 * Math.PI;
         mesh.userData = NoDomain[i]
-         mesh.name = 'sphere';
-         scene.add(mesh);
+        mesh.name = 'sphere';
+        scene.add(mesh);
     }
 }
 
-function BoxDefaultMovement(){
+function BoxDefaultMovement() {
     let sphere = scene.children.filter(child => child.name == 'sphere');
     for (var i = 1, il = sphere.length; i < il; i++) {
-      sphere[i].position.x = 20 * Math.cos(time + i); 
-      sphere[i].position.y = 20 * Math.sin(time + i * 1.1);
-       sphere[i].position.z = 20 * Math.tan(time + i * 1); 
-     }
+        sphere[i].position.x = 20 * Math.cos(time + i); 
+        sphere[i].position.y = 20 * Math.sin(time + i * 1.1);
+        sphere[i].position.z = 20 * Math.tan(time + i * 1); 
+    }
 }
 
 //  function BoxIntersctedMovement(){
@@ -229,15 +229,15 @@ function animate(){
     time = 0.0002 * Date.now();
 
     if(sculpture) {
-        // sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
-        //     // sculpUniforms['red'].value = Math.abs(Math.sin(time));
-        // });
+        sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
+            // sculpUniforms['red'].value = Math.abs(Math.sin(time));
+        });
     }
     let sphere = scene.children.filter(child => child.name == 'sphere');
     intersects = raycaster.intersectObjects(sphere);
     if (intersects.length > 0){
     // // BoxIntersctedMovement()
-    }else{
+    } else {
 
     }
     controls.update();
@@ -253,16 +253,16 @@ function onMouseClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
-   let sphere = scene.children.filter(child => child.name == 'sphere');
-   intersects = raycaster.intersectObjects(sphere);
-   if (intersects.length > 0){
-    if (INTERSECTED != intersects[0].object) {
-        INTERSECTED = intersects[0].object;
-        DisplayInfo();
-       // BoxIntersctedMovement();
-    }else{
-        INTERSECTED = null;
-    }
+    let sphere = scene.children.filter(child => child.name == 'sphere');
+    intersects = raycaster.intersectObjects(sphere);
+    if (intersects.length > 0) {
+        if (INTERSECTED != intersects[0].object) {
+            INTERSECTED = intersects[0].object;
+            DisplayInfo();
+        // BoxIntersctedMovement();
+        } else {
+            INTERSECTED = null;
+        }
    }
 }
 
@@ -280,7 +280,7 @@ function DisplayInfo(){
     let close = document.getElementById("close");
     close.addEventListener("click", () => {
         modal.classList.remove("show");
-      });
+    });
   }
 
 document.addEventListener("click", onMouseClick, false);
@@ -292,6 +292,5 @@ function onWindowResize() {
 }
 
 window.addEventListener("resize", onWindowResize, false);
-
 
 init();
