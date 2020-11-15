@@ -8,6 +8,7 @@ import {
     SphereBufferGeometry,
     BoxBufferGeometry,
     DodecahedronBufferGeometry,
+    TorusBufferGeometry,
     ConeBufferGeometry,
     HemisphereLight,
     DirectionalLight,
@@ -40,11 +41,10 @@ let container, scene, camera, renderer, controls, gui, mesh, mouse, intersects, 
 let time, clock, repoData, repoLength, raycaster;
 let stats;
 
-// let sculpture;
+let sculpture;
 
 function init() {
     mouse = new THREE.Vector2();
-    
     raycaster = new THREE.Raycaster();
     container = document.querySelector(".container");
     scene = new Scene();
@@ -61,12 +61,11 @@ function init() {
     .then(data => {
         repoData = data ;
         repoLength = repoData.length;
-        createGeometries();
+         createGeometries();
     }).catch(e => console.error(e));
 
     createCamera();
     createLights();
-    
     createControls();
     filterObjects();
 
@@ -109,13 +108,15 @@ function createRenderer() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.physicallyCorrectLights = true;
     container.appendChild(renderer.domElement);
+
 }
 
 function createGeometries() {
     const geometry = new BoxBufferGeometry(3, 3, 3);
     const geometry2 = new SphereBufferGeometry(3, 3, 3);
     const geometry3 = new DodecahedronBufferGeometry(3, 3, 3);
-    const geometry4 = new ConeBufferGeometry(3, 3, 3);
+    const geometry4 = new ConeBufferGeometry(5, 4, 3);
+    const geometry5 = new TorusBufferGeometry( 3, 1, 16, 100 );
     // const material = new ShaderMaterial({
     //     opacity: 0,
     //     transparent: true,
@@ -143,11 +144,17 @@ function createGeometries() {
         opacity: 1,
         transparent: true,
       });
+      const material5 = new THREE.MeshLambertMaterial({
+        color: 0x6D8C2D,
+        opacity: 1,
+        transparent: true,
+      });
 
     let Apocalyptic = repoData.filter(child => child.Narrative == "Apocalyptic");
     let Utopian = repoData.filter(child => child.Narrative == "Utopian");
     let Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
-    let NoDomain = repoData.filter(child => child.Narrative !== "Apocalyptic" && child.Narrative !== "Utopian" && child.Narrative !== "Dystopian");
+    let Revolutionary = repoData.filter(child => child.Narrative == "Revolutionary");
+    let NoDomain = repoData.filter(child => child.Narrative == "-na-");
 
     // sculpture = new Sculpture('sphere(0.2);');
 
@@ -174,7 +181,6 @@ function createGeometries() {
 
     for ( let i = 0; i < Apocalyptic.length; i ++ ){
         mesh = new Mesh(geometry, material4);
-
         mesh.position.x = Math.random() * 50 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 6 - 1;
@@ -209,6 +215,19 @@ function createGeometries() {
         mesh.rotation.z = Math.random() * 2 * Math.PI;
         mesh.userData = Dystopian[i]
          mesh.name = 'DystoGeo';
+         scene.add(mesh);
+    }
+
+    for ( let i = 0; i < Revolutionary.length; i ++ ){
+        mesh = new Mesh(geometry5, material5);
+        mesh.position.x = Math.random() * 50 - 50;
+        mesh.position.y = Math.random() * 10 - 10;
+        mesh.position.z = Math.random() * 6 - 1;
+        mesh.rotation.x = Math.random() * 2 * Math.PI;
+        mesh.rotation.y = Math.random() * 2 * Math.PI;
+        mesh.rotation.z = Math.random() * 2 * Math.PI;
+        mesh.userData = Revolutionary[i]
+         mesh.name = 'RevolutionGeo';
          scene.add(mesh);
     }
 
@@ -248,9 +267,13 @@ function animate(){
     BoxDefaultMovement();
     time = 0.0002 * Date.now();
 
+//       sculpture.setPosition(new THREE.Vector3(1, 0, 1));
+//   sculpture.setPosition(0, 0, 0);
+  
+
     // if(sculpture) {
     //     sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
-    //         // sculpUniforms['red'].value = Math.abs(Math.sin(time));
+    //          sculpUniforms['red'].value = Math.abs(Math.sin(time));
     //     });
     // }
     
@@ -310,12 +333,14 @@ function filterObjects() {
     let ApocalypticFilter = document.getElementById("Apo");
     let UtopianFilter = document.getElementById("Uto");
     let DystopianFilter = document.getElementById("Dysto");
+    let RevolutionaryFilter = document.getElementById("Revo");
     let Unfiltered = document.getElementById("NoClass");
 
     AllManuscripts.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
         let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
         let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
         let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
         for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
             NoDomainOpacity[i].visible = true;
@@ -329,12 +354,16 @@ function filterObjects() {
         for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
              UtopianOpacity[i].visible = true;
         }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = true;
+       }
       });
 
       ApocalypticFilter.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
         let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
         let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
         let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
         for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
             NoDomainOpacity[i].visible = false;
@@ -348,12 +377,16 @@ function filterObjects() {
         for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
             UtopianOpacity[i].visible = false;
         }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = false;
+       }
       });
 
       UtopianFilter.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
         let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
         let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
         let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
         for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
             NoDomainOpacity[i].visible = false;
@@ -367,12 +400,16 @@ function filterObjects() {
         for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
             UtopianOpacity[i].visible = true;
         }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = false;
+       }
       });
 
       DystopianFilter.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
         let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
         let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
         let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
         for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
             NoDomainOpacity[i].visible = false;
@@ -386,12 +423,39 @@ function filterObjects() {
         for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
             UtopianOpacity[i].visible = false;
         }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = false;
+       }
+      });
+
+    RevolutionaryFilter.addEventListener("click", () => {
+        let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
+        let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
+        let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
+        let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
+        for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
+            NoDomainOpacity[i].visible = false;
+         }
+       for (var i = 0, il = ApoOpacity.length; i < il; i++) {
+        ApoOpacity[i].visible = false;
+        }
+        for (var i = 0, il = DystoOpacity.length; i < il; i++) {
+            DystoOpacity[i].visible = false;
+        }
+        for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
+            UtopianOpacity[i].visible = false;
+        }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = true;
+       }
       });
 
       Unfiltered.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
         let DystoOpacity = scene.children.filter(child => child.name == 'DystoGeo');
         let UtopianOpacity = scene.children.filter(child => child.name == 'UtoGeo');
+        let RevolutionaryOpacity = scene.children.filter(child => child.name == 'RevolutionGeo');
         let NoDomainOpacity = scene.children.filter(child => child.name == 'NoDomainGeo');
         for (var i = 0, il = NoDomainOpacity.length; i < il; i++) {
             NoDomainOpacity[i].visible = true;
@@ -405,6 +469,9 @@ function filterObjects() {
         for (var i = 0, il = UtopianOpacity.length; i < il; i++) {
             UtopianOpacity[i].visible = false;
         }
+        for (var i = 0, il = RevolutionaryOpacity.length; i < il; i++) {
+            RevolutionaryOpacity[i].visible = false;
+       }
       });
 }
 

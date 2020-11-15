@@ -33,14 +33,14 @@ body {
     margin-bottom: 5px;
   }
   button {
-    background-color: rgba(255, 255, 255);
     border: 0;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
     color: black;
-    font-size: 14px;
+    background: (0,0,0,0.9);
+    font-size: 16px;
      padding: 5px 10px; 
      margin-bottom: 1%; 
+     margin-left: 1em;
   }
   .filterMenu{
   padding: 1%;
