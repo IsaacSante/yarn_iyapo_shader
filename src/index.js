@@ -17,6 +17,7 @@ import {
     Clock,
     Raycaster,
     Vector3,
+    Object3D,
   } from "three";
 
 // import {spCode} from './spCode.js';
@@ -30,19 +31,14 @@ import * as dat from 'dat.gui';
 import * as THREE from 'three'; //REMOVE this in production
 import fragmentShader from "./shaders/fragment.glsl";
 import vertexShader from "./shaders/vertex.glsl";
-
 const DEBUG = true; // Set to false in production
-
 if(DEBUG) {
     window.THREE = THREE;
 }
-
 let container, scene, camera, renderer, controls, gui, mesh, mouse, intersects, INTERSECTED;
 let time, clock, repoData, repoLength, raycaster;
 let stats;
-
 let sculpture;
-
 function init() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
@@ -68,7 +64,6 @@ function init() {
     createLights();
     createControls();
     filterObjects();
-
     if(DEBUG) {
         window.scene = scene;
         window.camera = camera;
@@ -76,10 +71,8 @@ function init() {
         stats = Stats.default();
         document.body.appendChild( stats.dom );
     }
-
     // sculpture = new Sculpture(spCode);
     // scene.add(sculpture.mesh);
-
     renderer.setAnimationLoop(() => {
         stats.begin();
         animate();
@@ -123,7 +116,6 @@ function createGeometries() {
     //     fragmentShader: fragmentShader,
     //     vertexShader: vertexShader,
     // });
-
     const material = new THREE.MeshLambertMaterial({
         color: 0xff0000,
         opacity: 1,
@@ -157,25 +149,20 @@ function createGeometries() {
     let NoDomain = repoData.filter(child => child.Narrative == "-na-");
 
     // sculpture = new Sculpture('sphere(0.2);');
-
     // let sculpMesh = sculptToThreeJSMesh('sphere(0.5);');
     // // console.log(mesh);
     // let uniformDescriptions = sculpMesh.material.uniformDescriptions;
     // let matUniforms = sculpMesh.material.uniforms;
-
     // let defaultUniforms = { 'sculptureCenter': 0, 'opacity': 0, 'time': 0, 'stepSize': 0, 'mouse': 0};
     // let customUniforms = uniformDescriptions.filter(uniform => !(uniform.name in defaultUniforms));
-    
     // //set the default value of the uniforms
     // customUniforms.forEach(uniform => matUniforms[uniform.name].value = uniform.value);
-
     // // default uniforms for the scupture
     // matUniforms['sculptureCenter'].value = new Vector3();
     // matUniforms['mouse'].value = new Vector3();
     // matUniforms['opacity'].value = 1.0;
     // matUniforms['time'].value = 0.0;
     // matUniforms['stepSize'].value = 0.85;
-    
     // // console.log(sculpture);
     // scene.add(sculpture.mesh);
 
@@ -253,30 +240,23 @@ function BoxDefaultMovement(){
       sphere[i].position.z = 20 * Math.cos(time + i * 1); 
      }
 }
-
 //  function BoxIntersctedMovement(){
 //     INTERSECTED.position.x = 0;
 //     INTERSECTED.position.y = 0;
 //     INTERSECTED.position.z = 0;
 //     console.log(INTERSECTED[0].position.z)
 //  }
-
-
 function animate(){
     // requestAnimationFrame(animate);
     BoxDefaultMovement();
     time = 0.0002 * Date.now();
-
 //       sculpture.setPosition(new THREE.Vector3(1, 0, 1));
 //   sculpture.setPosition(0, 0, 0);
-  
-
     // if(sculpture) {
     //     sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
     //          sculpUniforms['red'].value = Math.abs(Math.sin(time));
     //     });
     // }
-    
     let sphere = scene.children.filter(child => child.type == 'Mesh');
     intersects = raycaster.intersectObjects(sphere);
     if (intersects.length > 0){
@@ -302,6 +282,7 @@ function onMouseClick(event) {
    if (intersects.length > 0){
     if (INTERSECTED != intersects[0].object) {
         INTERSECTED = intersects[0].object;
+        // console.log(intersects[0].object.userData)
         DisplayInfo();
     }else{
         INTERSECTED = null;
@@ -329,12 +310,28 @@ function DisplayInfo(){
   }
 
 function filterObjects() {
+
+    //Narrative Buttons//
     let AllManuscripts = document.getElementById("All");
     let ApocalypticFilter = document.getElementById("Apo");
     let UtopianFilter = document.getElementById("Uto");
     let DystopianFilter = document.getElementById("Dysto");
     let RevolutionaryFilter = document.getElementById("Revo");
     let Unfiltered = document.getElementById("NoClass");
+
+    //Domain Buttons//
+    let AllDomainsFilter = document.getElementById("AllDomains");
+    let PoliticsFilter  = document.getElementById("Politics");
+    let EnvironmentFilter = document.getElementById("Environment");
+    let SpaceTravelFilter  = document.getElementById("Space-Travel");
+    let EducationFilter = document.getElementById("Education");
+    let GameFilter = document.getElementById("Game");
+    let SecurityFilter = document.getElementById("Security");
+    let FashionFilter = document.getElementById("Fashion");
+    let FoodFilter = document.getElementById("Food");
+    let HealthFilter = document.getElementById("Health");
+    let MusicFilter = document.getElementById("Music");
+    let NoDomainFilter = document.getElementById("NoDomain");
 
     AllManuscripts.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
@@ -473,7 +470,612 @@ function filterObjects() {
             RevolutionaryOpacity[i].visible = false;
        }
       });
+
+      AllDomainsFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = true;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = true;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = true;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = true;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = true;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = true;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = true;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = true;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = true;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = true;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = true;
+         }
+
+      })
+
+      PoliticsFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = true;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      EnvironmentFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = true;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      SpaceTravelFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = true;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      EducationFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = true;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      GameFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = true;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      SecurityFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = true;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      FashionFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = true;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      FoodFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = true;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+
+
+      HealthFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = true;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+
+      MusicFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = true;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = false;
+         }
+
+      })
+
+      NoDomainFilter.addEventListener("click", () => {
+
+        let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
+        let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
+        let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
+        let EducationOpacity  = scene.children.filter(child => child.userData.Domain == "Education");
+        let GameOpacity = scene.children.filter(child => child.userData.Domain == "Game");
+        let SecurityOpacity = scene.children.filter(child => child.userData.Domain == "Security");
+        let FashionOpacity = scene.children.filter(child => child.userData.Domain == "Fashion");
+        let FoodOpacity = scene.children.filter(child => child.userData.Domain == "Food");
+        let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
+        let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
+        let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
+
+        for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
+            PoliticsOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EnvironmentOpacity.length; i < il; i++) {
+            EnvironmentOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SpaceTravelOpacity.length; i < il; i++) {
+            SpaceTravelOpacity[i].visible = false;
+         }
+         for (var i = 0, il = EducationOpacity.length; i < il; i++) {
+            EducationOpacity[i].visible = false;
+         }
+         for (var i = 0, il = GameOpacity.length; i < il; i++) {
+            GameOpacity[i].visible = false;
+         }
+         for (var i = 0, il = SecurityOpacity.length; i < il; i++) {
+            SecurityOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FashionOpacity.length; i < il; i++) {
+            FashionOpacity[i].visible = false;
+         }
+         for (var i = 0, il = FoodOpacity.length; i < il; i++) {
+            FoodOpacity[i].visible = false;
+         }
+         for (var i = 0, il = HealthOpacity.length; i < il; i++) {
+            HealthOpacity[i].visible = false;
+         }
+         for (var i = 0, il = MusicOpacity.length; i < il; i++) {
+            MusicOpacity[i].visible = false;
+         }
+         for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
+            NoDomainTypeOpacity[i].visible = true;
+         }
+
+      })
+
 }
+
 
 document.addEventListener("click", onMouseClick, false);
 
