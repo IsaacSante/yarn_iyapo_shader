@@ -2,8 +2,8 @@ import {
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
-    MeshStandardMaterial,
     Mesh,
+    MeshLambertMaterial,
     Color,
     SphereBufferGeometry,
     BoxBufferGeometry,
@@ -13,32 +13,34 @@ import {
     HemisphereLight,
     DirectionalLight,
     DirectionalLightHelper,
-    ShaderMaterial,
     Clock,
     Raycaster,
     Vector3,
-    Object3D,
   } from "three";
 
-// import {spCode} from './spCode.js';
-// import {sculptToThreeJSMesh} from 'shader-park-core'
-// import {Sculpture} from './Sculpture.js';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import * as Stats from 'stats.js';
-import {lerp, params} from './helper.js';
-import anime from 'animejs/lib/anime.es.js';
+import {params} from './helper.js';
 import * as dat from 'dat.gui';
+import {createSculpture} from 'shader-park-core';
+import * as Stats from 'stats.js';
+
 import * as THREE from 'three'; //REMOVE this in production
-import fragmentShader from "./shaders/fragment.glsl";
-import vertexShader from "./shaders/vertex.glsl";
 const DEBUG = true; // Set to false in production
 if(DEBUG) {
     window.THREE = THREE;
 }
-let container, scene, camera, renderer, controls, gui, mesh, mouse, intersects, INTERSECTED;
+let container, scene, camera, renderer, controls, mesh, mouse, intersects, INTERSECTED;
 let time, clock, repoData, repoLength, raycaster;
 let stats;
-let sculpture;
+let gui;
+
+function uniformUpdateCallback() {
+   return {
+       time: time,
+       _scale: params.sdfScale
+   }
+}
+
 function init() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
@@ -48,6 +50,10 @@ function init() {
     clock = new Clock(true);
     time = 0;
     createRenderer();
+   const spinner = document.getElementById("spinner");
+      function hideSpinner() {
+      spinner.classList.add("hide");
+   }
     fetch('https://iyapo-repo.glitch.me/mynewdata', {
         mode: 'cors',
         headers: {
@@ -57,6 +63,7 @@ function init() {
     .then(data => {
         repoData = data ;
         repoLength = repoData.length;
+         hideSpinner();
          createGeometries();
     }).catch(e => console.error(e));
 
@@ -64,6 +71,7 @@ function init() {
     createLights();
     createControls();
     filterObjects();
+  // initGui();
     if(DEBUG) {
         window.scene = scene;
         window.camera = camera;
@@ -78,13 +86,22 @@ function init() {
         animate();
         renderer.render(scene, camera);
         stats.end();
+      //   time = clock.getD
     });
+}
+
+
+function initGui() {
+   gui = new dat.GUI();
+   window.gui = gui;
+   document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
+   gui.add(params, 'mixShape', 0, 1.00001);
 }
 
 function createCamera() {
     const aspect = container.clientWidth / container.clientHeight;
     camera = new PerspectiveCamera(35, aspect, 0.1, 1000);
-    camera.position.set(100, 50, 200);
+    camera.position.set(100, 50, 150);
 
 }
 
@@ -110,12 +127,6 @@ function createGeometries() {
     const geometry3 = new DodecahedronBufferGeometry(3, 3, 3);
     const geometry4 = new ConeBufferGeometry(5, 4, 3);
     const geometry5 = new TorusBufferGeometry( 3, 1, 16, 100 );
-    // const material = new ShaderMaterial({
-    //     opacity: 0,
-    //     transparent: true,
-    //     fragmentShader: fragmentShader,
-    //     vertexShader: vertexShader,
-    // });
     const material = new THREE.MeshLambertMaterial({
         color: 0xff0000,
         opacity: 1,
@@ -148,58 +159,58 @@ function createGeometries() {
     let Revolutionary = repoData.filter(child => child.Narrative == "Revolutionary");
     let NoDomain = repoData.filter(child => child.Narrative == "-na-");
 
-    // sculpture = new Sculpture('sphere(0.2);');
-    // let sculpMesh = sculptToThreeJSMesh('sphere(0.5);');
-    // // console.log(mesh);
-    // let uniformDescriptions = sculpMesh.material.uniformDescriptions;
-    // let matUniforms = sculpMesh.material.uniforms;
-    // let defaultUniforms = { 'sculptureCenter': 0, 'opacity': 0, 'time': 0, 'stepSize': 0, 'mouse': 0};
-    // let customUniforms = uniformDescriptions.filter(uniform => !(uniform.name in defaultUniforms));
-    // //set the default value of the uniforms
-    // customUniforms.forEach(uniform => matUniforms[uniform.name].value = uniform.value);
-    // // default uniforms for the scupture
-    // matUniforms['sculptureCenter'].value = new Vector3();
-    // matUniforms['mouse'].value = new Vector3();
-    // matUniforms['opacity'].value = 1.0;
-    // matUniforms['time'].value = 0.0;
-    // matUniforms['stepSize'].value = 0.85;
-    // // console.log(sculpture);
-    // scene.add(sculpture.mesh);
+    let radius = params.boundingSphere;
+    let spCode = `
+    let s = getRayDirection();
+    s.x += .01;
+    color(s)
+    sphere(0.5);
+    `;
+    let spCode2 = `
+    let s = getRayDirection();
+    s.x += .01;
+    color(s)
+    box(.5, .5, .5);
+    `;
+    let spCode3 = `
+    let s = getRayDirection();
+    s.x += .01;
+    color(s)
+    rotateX(Math.PI/2);
+    torus(0.9, 0.05);
+    `;
 
     for ( let i = 0; i < Apocalyptic.length; i ++ ){
-        mesh = new Mesh(geometry, material4);
-        mesh.position.x = Math.random() * 50 - 50;
-        mesh.position.y = Math.random() * 10 - 10;
-        mesh.position.z = Math.random() * 6 - 1;
-        mesh.rotation.x = Math.random() * 2 * Math.PI;
-        mesh.rotation.y = Math.random() * 2 * Math.PI;
-        mesh.rotation.z = Math.random() * 2 * Math.PI;
-        mesh.userData = Apocalyptic[i]
-         mesh.name = 'ApoGeo';
-         scene.add(mesh);
+      mesh = createSculpture(spCode, () => ({
+         'time': time
+     }), {radius: 5});
+     mesh.position.x = Math.random() * 50 - 50;
+     mesh.position.y = Math.random() * 10 - 10;
+     mesh.position.z = Math.random() * 6 - 1;
+     mesh.userData = Apocalyptic[i]
+     mesh.name = 'ApoGeo';
+     scene.add(mesh);
     }
 
     for ( let i = 0; i < Utopian.length; i ++ ){
-        mesh = new Mesh(geometry2, material3);
+      mesh = createSculpture(spCode2, () => ({
+         'time': time
+     }), {radius: 4});
         mesh.position.x = Math.random() * 50 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 6 - 1;
-        mesh.rotation.x = Math.random() * 2 * Math.PI;
-        mesh.rotation.y = Math.random() * 2 * Math.PI;
-        mesh.rotation.z = Math.random() * 2 * Math.PI;
         mesh.userData = Utopian[i]
          mesh.name = 'UtoGeo';
          scene.add(mesh);
     }
 
     for ( let i = 0; i < Dystopian.length; i ++ ){
-        mesh = new Mesh(geometry3, material2);
+      mesh = createSculpture(spCode3, () => ({
+         'time': time
+     }), {radius: 3});
         mesh.position.x = Math.random() * 50 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 6 - 1;
-        mesh.rotation.x = Math.random() * 2 * Math.PI;
-        mesh.rotation.y = Math.random() * 2 * Math.PI;
-        mesh.rotation.z = Math.random() * 2 * Math.PI;
         mesh.userData = Dystopian[i]
          mesh.name = 'DystoGeo';
          scene.add(mesh);
@@ -248,7 +259,9 @@ function BoxDefaultMovement(){
 //  }
 function animate(){
     // requestAnimationFrame(animate);
+   
     BoxDefaultMovement();
+   
     time = 0.0002 * Date.now();
 //       sculpture.setPosition(new THREE.Vector3(1, 0, 1));
 //   sculpture.setPosition(0, 0, 0);
@@ -290,24 +303,24 @@ function onMouseClick(event) {
    }
 }
 
-function DisplayInfo(){
-    let modal = document.getElementById("newcont")
-    modal.classList.add("show");
-    let modal_name = document.getElementById("name");
-    let modal_title = document.getElementById("title");
-    let modal_desc = document.getElementById("desc");
-    let modal_img = document.getElementById("modal-img");   
-    let modal_narrative = document.getElementById("narrative");
-    modal_title.innerHTML = INTERSECTED.userData.artid;
-    modal_name.innerHTML = INTERSECTED.userData.aname;
-    modal_narrative.innerHTML =INTERSECTED.userData.Narrative; 
-    modal_desc.innerHTML = INTERSECTED.userData.artdes;
-    modal_img.src = INTERSECTED.userData.manimg;
-    let close = document.getElementById("close");
-    close.addEventListener("click", () => {
-        modal.classList.remove("show");
-    });
-  }
+// function DisplayInfo(){
+//     let modal = document.getElementById("newcont")
+//     modal.classList.add("show");
+//     let modal_name = document.getElementById("name");
+//     let modal_title = document.getElementById("title");
+//     let modal_desc = document.getElementById("desc");
+//     let modal_img = document.getElementById("modal-img");   
+//     let modal_narrative = document.getElementById("narrative");
+//     modal_title.innerHTML = INTERSECTED.userData.artid;
+//     modal_name.innerHTML = INTERSECTED.userData.aname;
+//     modal_narrative.innerHTML =INTERSECTED.userData.Narrative; 
+//     modal_desc.innerHTML = INTERSECTED.userData.artdes;
+//     modal_img.src = INTERSECTED.userData.manimg;
+//     let close = document.getElementById("close");
+//     close.addEventListener("click", () => {
+//         modal.classList.remove("show");
+//     });
+//   }
 
 function filterObjects() {
 
@@ -1075,7 +1088,6 @@ function filterObjects() {
       })
 
 }
-
 
 document.addEventListener("click", onMouseClick, false);
 
