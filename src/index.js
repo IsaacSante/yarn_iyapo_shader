@@ -12,44 +12,35 @@ import {
     ConeBufferGeometry,
     HemisphereLight,
     DirectionalLight,
-    DirectionalLightHelper,
     Clock,
     Raycaster,
-    Vector3,
+    Vector2,
   } from "three";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import {params} from './helper.js';
-import * as dat from 'dat.gui';
-import {createSculpture} from 'shader-park-core';
+// import {params} from './helper.js';
+// import * as dat from 'dat.gui';
 import * as Stats from 'stats.js';
 
 import * as THREE from 'three'; //REMOVE this in production
-const DEBUG = true; // Set to false in production
+
+const DEBUG = false; // Set to false in production
 if(DEBUG) {
     window.THREE = THREE;
 }
-let container, scene, camera, renderer, controls, mesh, mouse, intersects, INTERSECTED;
+let container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED;
 let time, clock, repoData, repoLength, raycaster;
 let stats;
-let gui;
-
-function uniformUpdateCallback() {
-   return {
-       time: time,
-       _scale: params.sdfScale
-   }
-}
+// let gui;
+let animateNotIntersected = true;
 
 function init() {
-    mouse = new THREE.Vector2();
-    raycaster = new THREE.Raycaster();
-    container = document.querySelector(".container");
-    scene = new Scene();
+   container = document.querySelector(".container");
+   scene = new Scene();
+    mouse = new Vector2();
+    raycaster = new Raycaster();
     scene.background = new Color("skyblue");
     clock = new Clock(true);
-    time = 0;
-    createRenderer();
    const spinner = document.getElementById("spinner");
       function hideSpinner() {
       spinner.classList.add("hide");
@@ -66,11 +57,10 @@ function init() {
          hideSpinner();
          createGeometries();
     }).catch(e => console.error(e));
-
+    createRenderer();
     createCamera();
     createLights();
     createControls();
-    filterObjects();
   // initGui();
     if(DEBUG) {
         window.scene = scene;
@@ -79,30 +69,24 @@ function init() {
         stats = Stats.default();
         document.body.appendChild( stats.dom );
     }
-    // sculpture = new Sculpture(spCode);
-    // scene.add(sculpture.mesh);
+
     renderer.setAnimationLoop(() => {
-        stats.begin();
-        animate();
+      //   stats.begin();
+         animate();
         renderer.render(scene, camera);
-        stats.end();
-      //   time = clock.getD
+      //   stats.end();
     });
 }
-
-
-function initGui() {
-   gui = new dat.GUI();
-   window.gui = gui;
-   document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
-   gui.add(params, 'mixShape', 0, 1.00001);
-}
-
+// function initGui() {
+//    gui = new dat.GUI();
+//    window.gui = gui;
+//    document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
+//    gui.add(params, 'mixShape', 0, 1.00001);
+// }
 function createCamera() {
     const aspect = container.clientWidth / container.clientHeight;
     camera = new PerspectiveCamera(35, aspect, 0.1, 1000);
     camera.position.set(100, 50, 150);
-
 }
 
 function createLights() {
@@ -113,12 +97,12 @@ function createLights() {
 }
 
 function createRenderer() {
-    renderer = new WebGLRenderer({ antialias: true });
+   renderer = new WebGLRenderer({ antialias: true});
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.physicallyCorrectLights = true;
     container.appendChild(renderer.domElement);
-
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
 }
 
 function createGeometries() {
@@ -132,58 +116,33 @@ function createGeometries() {
         opacity: 1,
         transparent: true,
       });
-      const material2 = new THREE.MeshLambertMaterial({
+      const material2 = new MeshLambertMaterial({
         color: 0xFFFF00,
         opacity: 1,
         transparent: true,
       });
-      const material3 = new THREE.MeshLambertMaterial({
+      const material3 = new MeshLambertMaterial({
         color: 0x0000FF,
         opacity: 1,
         transparent: true,
       });
-      const material4 = new THREE.MeshLambertMaterial({
+      const material4 = new MeshLambertMaterial({
         color: 0x00FF00,
         opacity: 1,
         transparent: true,
       });
-      const material5 = new THREE.MeshLambertMaterial({
+      const material5 = new MeshLambertMaterial({
         color: 0x6D8C2D,
         opacity: 1,
         transparent: true,
       });
-
     let Apocalyptic = repoData.filter(child => child.Narrative == "Apocalyptic");
     let Utopian = repoData.filter(child => child.Narrative == "Utopian");
     let Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
     let Revolutionary = repoData.filter(child => child.Narrative == "Revolutionary");
     let NoDomain = repoData.filter(child => child.Narrative == "-na-");
-
-    let radius = params.boundingSphere;
-    let spCode = `
-    let s = getRayDirection();
-    s.x += .01;
-    color(s)
-    sphere(0.5);
-    `;
-    let spCode2 = `
-    let s = getRayDirection();
-    s.x += .01;
-    color(s)
-    box(.5, .5, .5);
-    `;
-    let spCode3 = `
-    let s = getRayDirection();
-    s.x += .01;
-    color(s)
-    rotateX(Math.PI/2);
-    torus(0.9, 0.05);
-    `;
-
     for ( let i = 0; i < Apocalyptic.length; i ++ ){
-      mesh = createSculpture(spCode, () => ({
-         'time': time
-     }), {radius: 5});
+     mesh = new Mesh(geometry, material);
      mesh.position.x = Math.random() * 50 - 50;
      mesh.position.y = Math.random() * 10 - 10;
      mesh.position.z = Math.random() * 6 - 1;
@@ -191,11 +150,8 @@ function createGeometries() {
      mesh.name = 'ApoGeo';
      scene.add(mesh);
     }
-
     for ( let i = 0; i < Utopian.length; i ++ ){
-      mesh = createSculpture(spCode2, () => ({
-         'time': time
-     }), {radius: 4});
+        mesh = new Mesh(geometry2, material2);
         mesh.position.x = Math.random() * 50 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 6 - 1;
@@ -203,11 +159,8 @@ function createGeometries() {
          mesh.name = 'UtoGeo';
          scene.add(mesh);
     }
-
     for ( let i = 0; i < Dystopian.length; i ++ ){
-      mesh = createSculpture(spCode3, () => ({
-         'time': time
-     }), {radius: 3});
+        mesh = new Mesh(geometry3, material3);
         mesh.position.x = Math.random() * 50 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 6 - 1;
@@ -215,7 +168,6 @@ function createGeometries() {
          mesh.name = 'DystoGeo';
          scene.add(mesh);
     }
-
     for ( let i = 0; i < Revolutionary.length; i ++ ){
         mesh = new Mesh(geometry5, material5);
         mesh.position.x = Math.random() * 50 - 50;
@@ -228,9 +180,8 @@ function createGeometries() {
          mesh.name = 'RevolutionGeo';
          scene.add(mesh);
     }
-
     for ( let i = 0; i < NoDomain.length; i ++ ){
-        mesh = new Mesh(geometry4, material);
+        mesh = new Mesh(geometry4, material4);
         mesh.position.x = Math.random() * 100 - 50;
         mesh.position.y = Math.random() * 10 - 10;
         mesh.position.z = Math.random() * 10 - 1;
@@ -251,32 +202,10 @@ function BoxDefaultMovement(){
       sphere[i].position.z = 20 * Math.cos(time + i * 1); 
      }
 }
-//  function BoxIntersctedMovement(){
-//     INTERSECTED.position.x = 0;
-//     INTERSECTED.position.y = 0;
-//     INTERSECTED.position.z = 0;
-//     console.log(INTERSECTED[0].position.z)
-//  }
-function animate(){
-    // requestAnimationFrame(animate);
-   
-    BoxDefaultMovement();
-   
-    time = 0.0002 * Date.now();
-//       sculpture.setPosition(new THREE.Vector3(1, 0, 1));
-//   sculpture.setPosition(0, 0, 0);
-    // if(sculpture) {
-    //     sculpture.update({time, mouse}, (customUniforms, sculpUniforms) => {
-    //          sculpUniforms['red'].value = Math.abs(Math.sin(time));
-    //     });
-    // }
-    let sphere = scene.children.filter(child => child.type == 'Mesh');
-    intersects = raycaster.intersectObjects(sphere);
-    if (intersects.length > 0){
-    // // BoxIntersctedMovement()
-    } else {
 
-    }
+function animate(){
+   time = 0.0001 * Date.now();
+    BoxDefaultMovement();
     controls.update();
     renderer.render(scene, camera)
 }
@@ -285,66 +214,46 @@ function createControls() {
     controls = new OrbitControls(camera, renderer.domElement);
 }
 
-function onMouseClick(event) {
-    event.preventDefault();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    let sphere = scene.children.filter(child => child.type == "Mesh");
-   intersects = raycaster.intersectObjects(sphere);
-   if (intersects.length > 0){
-    if (INTERSECTED != intersects[0].object) {
-        INTERSECTED = intersects[0].object;
-        // console.log(intersects[0].object.userData)
-        DisplayInfo();
-    }else{
-        INTERSECTED = null;
-    }
-   }
-}
 
-// function DisplayInfo(){
-//     let modal = document.getElementById("newcont")
-//     modal.classList.add("show");
-//     let modal_name = document.getElementById("name");
-//     let modal_title = document.getElementById("title");
-//     let modal_desc = document.getElementById("desc");
-//     let modal_img = document.getElementById("modal-img");   
-//     let modal_narrative = document.getElementById("narrative");
-//     modal_title.innerHTML = INTERSECTED.userData.artid;
-//     modal_name.innerHTML = INTERSECTED.userData.aname;
-//     modal_narrative.innerHTML =INTERSECTED.userData.Narrative; 
-//     modal_desc.innerHTML = INTERSECTED.userData.artdes;
-//     modal_img.src = INTERSECTED.userData.manimg;
-//     let close = document.getElementById("close");
-//     close.addEventListener("click", () => {
-//         modal.classList.remove("show");
-//     });
-//   }
-
+function DisplayInfo(){
+    let modal = document.getElementById("newcont")
+    modal.classList.add("show");
+    let modal_name = document.getElementById("name");
+    let modal_title = document.getElementById("title");
+    let modal_desc = document.getElementById("desc");
+    let modal_img = document.getElementById("modal-img");   
+    let modal_narrative = document.getElementById("narrative");
+    modal_title.innerHTML = INTERSECTED.userData.artid;
+    modal_name.innerHTML = INTERSECTED.userData.aname;
+    modal_narrative.innerHTML =INTERSECTED.userData.Narrative; 
+    modal_desc.innerHTML = INTERSECTED.userData.artdes;
+    modal_img.src = INTERSECTED.userData.manimg;
+    let close = document.getElementById("close");
+    close.addEventListener("click", () => {
+        modal.classList.remove("show");
+    });
+  }
 function filterObjects() {
-
     //Narrative Buttons//
-    let AllManuscripts = document.getElementById("All");
-    let ApocalypticFilter = document.getElementById("Apo");
-    let UtopianFilter = document.getElementById("Uto");
-    let DystopianFilter = document.getElementById("Dysto");
-    let RevolutionaryFilter = document.getElementById("Revo");
-    let Unfiltered = document.getElementById("NoClass");
-
+    let AllManuscripts = document.getElementById("all narratives");
+    let ApocalypticFilter = document.getElementById("apocalyptic narratives");
+    let UtopianFilter = document.getElementById("utopian narratives");
+    let DystopianFilter = document.getElementById("dystopian narratives");
+    let RevolutionaryFilter = document.getElementById("revolutionary narratives");
+    let Unfiltered = document.getElementById("no narrative");
     //Domain Buttons//
-    let AllDomainsFilter = document.getElementById("AllDomains");
-    let PoliticsFilter  = document.getElementById("Politics");
-    let EnvironmentFilter = document.getElementById("Environment");
-    let SpaceTravelFilter  = document.getElementById("Space-Travel");
-    let EducationFilter = document.getElementById("Education");
-    let GameFilter = document.getElementById("Game");
-    let SecurityFilter = document.getElementById("Security");
-    let FashionFilter = document.getElementById("Fashion");
-    let FoodFilter = document.getElementById("Food");
-    let HealthFilter = document.getElementById("Health");
-    let MusicFilter = document.getElementById("Music");
-    let NoDomainFilter = document.getElementById("NoDomain");
+    let AllDomainsFilter = document.getElementById("all domains");
+    let PoliticsFilter  = document.getElementById("politics domain");
+    let EnvironmentFilter = document.getElementById("environment domain");
+    let SpaceTravelFilter  = document.getElementById("space travel domain");
+    let EducationFilter = document.getElementById("education domain");
+    let GameFilter = document.getElementById("game domain");
+    let SecurityFilter = document.getElementById("security domain");
+    let FashionFilter = document.getElementById("fashion domain");
+    let FoodFilter = document.getElementById("food domain");
+    let HealthFilter = document.getElementById("health domain");
+    let MusicFilter = document.getElementById("music domain");
+    let NoDomainFilter = document.getElementById("no domains");
 
     AllManuscripts.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
@@ -885,7 +794,6 @@ function filterObjects() {
       })
 
       FoodFilter.addEventListener("click", () => {
-
         let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
         let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
         let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
@@ -897,7 +805,6 @@ function filterObjects() {
         let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
         let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
         let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
-
         for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
             PoliticsOpacity[i].visible = false;
          }
@@ -931,13 +838,9 @@ function filterObjects() {
          for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
             NoDomainTypeOpacity[i].visible = false;
          }
-
       })
 
-
-
       HealthFilter.addEventListener("click", () => {
-
         let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
         let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
         let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
@@ -949,7 +852,6 @@ function filterObjects() {
         let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
         let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
         let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
-
         for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
             PoliticsOpacity[i].visible = false;
          }
@@ -983,12 +885,9 @@ function filterObjects() {
          for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
             NoDomainTypeOpacity[i].visible = false;
          }
-
       })
 
-
       MusicFilter.addEventListener("click", () => {
-
         let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
         let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
         let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
@@ -1000,7 +899,6 @@ function filterObjects() {
         let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
         let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
         let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
-
         for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
             PoliticsOpacity[i].visible = false;
          }
@@ -1034,11 +932,9 @@ function filterObjects() {
          for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
             NoDomainTypeOpacity[i].visible = false;
          }
-
       })
 
       NoDomainFilter.addEventListener("click", () => {
-
         let PoliticsOpacity = scene.children.filter(child => child.userData.Domain == "Politics");
         let EnvironmentOpacity = scene.children.filter(child => child.userData.Domain == "Environment");
         let SpaceTravelOpacity  = scene.children.filter(child => child.userData.Domain == "Space Travel");
@@ -1050,7 +946,6 @@ function filterObjects() {
         let HealthOpacity = scene.children.filter(child => child.userData.Domain == "Health");
         let MusicOpacity = scene.children.filter(child => child.userData.Domain == "Music");
         let NoDomainTypeOpacity = scene.children.filter(child => child.userData.Domain == "-na-");
-
         for (var i = 0, il = PoliticsOpacity.length; i < il; i++) {
             PoliticsOpacity[i].visible = false;
          }
@@ -1084,19 +979,68 @@ function filterObjects() {
          for (var i = 0, il = NoDomainTypeOpacity.length; i < il; i++) {
             NoDomainTypeOpacity[i].visible = true;
          }
-
       })
+}
 
+init();
+
+function onMouseClick(event) {
+   event.preventDefault();
+   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+   raycaster.setFromCamera(mouse, camera);
+   let sphere = scene.children.filter(child => child.type == "Mesh");
+  let intersects = raycaster.intersectObjects(sphere);
+  if (intersects.length > 0){
+   if (INTERSECTED != intersects[0].object) {
+       INTERSECTED = intersects[0].object;
+       DisplayInfo();
+       renderer.setAnimationLoop(null);
+   }else{
+       INTERSECTED = null;
+   }
+  }
 }
 
 document.addEventListener("click", onMouseClick, false);
 
 function onWindowResize() {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+   camera.aspect = container.clientWidth / container.clientHeight;
+   camera.updateProjectionMatrix();
+   renderer.setSize(container.clientWidth, container.clientHeight);
 }
-
 window.addEventListener("resize", onWindowResize, false);
+filterObjects();
 
-init();
+let currentText = document.getElementById('current');
+const wrapper = document.getElementById('filterMenu');
+
+wrapper.addEventListener('click', (event) => {
+  const isButton = event.target.nodeName === 'BUTTON';
+  if (!isButton) {
+    return;
+  }
+currentText.innerHTML = event.target.id
+//   console.dir(event.target.id);
+})
+
+const wrapper2 = document.getElementById('DomainMenu');
+
+wrapper2.addEventListener('click', (event) => {
+  const isButton = event.target.nodeName === 'BUTTON';
+  if (!isButton) {
+    return;
+  }
+  currentText.innerHTML = event.target.id
+})
+
+
+let closeButton = document.getElementById('close') 
+closeButton.addEventListener('click', () => {
+   renderer.setAnimationLoop(() => {
+         animate();
+        renderer.render(scene, camera);
+    });
+})
+
+

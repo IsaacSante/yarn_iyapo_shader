@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./src/styles.css" />
     <title>Iyapo Repo Beta</title>
 </head>
 <body>
+  <div class="corner-text">
+    <h1>Iyapo Repository</h1>
+    <p>Currently viewing <span id="current">all narratives & domains</span></p>
+  </div>
     <div class="container"></div>
     <div id="spinner"></div> 
     <div class="newcont" id="newcont">
-      <h1 id='title'>
+      <h1>An Iyapo Repository manuscript</h1>
+      <h2 id='title'>
         Hello
-      </h1>
+      </h2>
       <h3 id="name">
         Hello
       </h3>
@@ -23,27 +30,27 @@
       <img src="" alt="" class="modal-img" id="modal-img" >
       <button id="close">Close</button>
     </div>
-    <div class="filterMenu">
-   <button id="All">All Narratives</button>
-    <button id="Apo">Apocalytic</button>
-    <button id="Uto">Utopian</button>
-    <button id="Dysto">Dystopian</button>
-    <button id="Revo">Revolutionary</button>
-    <button id="NoClass">No Narrative</button>
+    <div id="filterMenu" class="filterMenu">
+   <button id="all narratives">All Narratives</button>
+    <button id="apocalyptic narratives">Apocalytic</button>
+    <button id="utopian narratives">Utopian</button>
+    <button id="dystopian narratives">Dystopian</button>
+    <button id="revolutionary narratives">Revolutionary</button>
+    <button id="no narrative">No Narrative</button>
     </div>
-    <div class="DomainMenu">
-      <button id="AllDomains">All Domains</button>
-      <button id="Politics">Politcs</button>
-      <button id="Environment">Environment</button>
-      <button id="Space-Travel">Space Travel</button>
-      <button id="Education">Education</button>
-      <button id="Game">Game</button>
-      <button id="Security">Security</button>
-      <button id="Fashion">Fashion</button>
-      <button id="Food">Food</button>
-      <button id="Health">Health</button>
-      <button id="Music">Music</button>
-      <button id="NoDomain">No Domain</button>
+    <div id="DomainMenu" class="DomainMenu">
+      <button id="all domains">All Domains</button>
+      <button id="politics domain">Politcs</button>
+      <button id="environment domain">Environment</button>
+      <button id="space travel domain">Space Travel</button>
+      <button id="education domain">Education</button>
+      <button id="game domain">Game</button>
+      <button id="security domain">Security</button>
+      <button id="fashion domain">Fashion</button>
+      <button id="food domain">Food</button>
+      <button id="health domain">Health</button>
+      <button id="music domain">Music</button>
+      <button id="no domains">No Domain</button>
     </div>
         <script src="src/index.js"></script>
 </body>

@@ -1,7 +1,9 @@
 body {
-    font-family: sans-serif;
     margin: 0;
     overflow: hidden;
+    font-family: 'Montserrat', sans-serif;
+    /* background: linear-gradient(0.25turn, #3f87a6, #ebf8e1, #f69d3c); */
+    /* background: linear-gradient(#e66465, #9198e5); */
   }
   .container {
     position: absolute;
@@ -11,7 +13,6 @@ body {
     height: 100%;
     z-index: 1;
   }
-
   #spinner{
     visibility: visible;
     width: 10em;
@@ -28,7 +29,6 @@ body {
     z-index: 10000;
     animation: spin 1s infinite linear;
   }
-  
   @keyframes spin {
     from {
         transform: rotate(0deg);
@@ -36,21 +36,20 @@ body {
         transform: rotate(360deg);
     }
   }
-  
   #spinner.show {
     visibility: visible;
   }
   #spinner.hide {
     visibility: hidden;
+    display: none;
   }
-  
-
   .newcont {
     position: absolute;
+    top:0;
     right: 0;
-    height: 100vh;
+    height: 100%;
     padding: 1%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     z-index: 1;
     width: 30vw;
     color: whitesmoke;
@@ -62,7 +61,6 @@ body {
     pointer-events: auto;
     opacity: 1;
   } 
-
   .newcont p {
     line-height: 120%;
   }
@@ -70,28 +68,54 @@ body {
     width: 70%;
     margin-bottom: 5px;
   }
+
   button {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     border: 0;
     border-radius: 5px;
+    background-color: rgba(255,255,255,0.5);
     color: black;
-    background: (0,0,0,0.9);
     font-size: 16px;
-     padding: 5px 10px; 
-     margin-bottom: 1%; 
-     margin-left: 1em;
+    padding: 5px 10%; 
+    margin: 1%;
+    display: inline;
+    text-align: center;
+    cursor: pointer;
   }
+
+  /* button:hover {
+    background-color: yellow;
+  } */
+
+  button:active {
+    background-color: #F00;
+  }
+
   .filterMenu{
-  padding: 1%;
   position: absolute;
-  top: 0;
-  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 200;
+  width: 20%;
+  margin-bottom: 25%;
+  padding: 1%;
   }
+
   .DomainMenu{
-    padding: 1.5%;
-    padding: 5em;
     position: absolute;
-    top: 0;
-    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: 100;
+    width: 20%;
+    padding: 1%;
+    }
+
+    .corner-text {
+      padding: 1%;
+      top: 0;
+      left: 0;
+      position: absolute;
+      z-index: 10000;
+
     }
