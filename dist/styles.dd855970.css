@@ -47,7 +47,7 @@ body {
 
   .newcont {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.945);
+    background-color: rgba(0, 0, 0, 0.9);
     z-index: 1000000000000;
     width: 100vw;
     height: 100rem;
@@ -63,6 +63,8 @@ body {
     padding: 10px 10%;
     font-size: 0.8rem;
   }
+
+ 
 
   .description-artifact {
     border-top: .01rem solid white;
@@ -118,6 +120,10 @@ body {
   }
 
   button:hover {
+    background-color:rgba(241, 171, 20,0.8);
+  }
+
+  .close:hover {
     background-color:rgba(255,255,255,0.4);
   }
 
@@ -152,7 +158,9 @@ body {
       left: 0;
       position: absolute;
       z-index: 10000;
-
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
     }
 
     canvas {
