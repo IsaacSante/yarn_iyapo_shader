@@ -37499,8 +37499,8 @@ function init() {
   container = document.querySelector(".container");
   scene = new THREE.Scene();
   mouse = new THREE.Vector2();
-  raycaster = new THREE.Raycaster();
-  scene.background = new THREE.Color("skyblue");
+  raycaster = new THREE.Raycaster(); //  scene.background = new Color("skyblue");
+
   clock = new THREE.Clock(true);
   var spinner = document.getElementById("spinner");
 
@@ -37564,8 +37564,10 @@ function createLights() {
 
 function createRenderer() {
   renderer = new THREE.WebGLRenderer({
+    alpha: true,
     antialias: true
   });
+  renderer.setClearColor(0xfcba03, 0);
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.physicallyCorrectLights = true;
@@ -37708,10 +37710,10 @@ function DisplayInfo() {
   var modal_desc = document.getElementById("desc");
   var modal_img = document.getElementById("modal-img");
   var modal_narrative = document.getElementById("narrative");
-  modal_title.innerHTML = INTERSECTED.userData.artid;
-  modal_name.innerHTML = INTERSECTED.userData.aname;
-  modal_narrative.innerHTML = INTERSECTED.userData.Narrative;
-  modal_desc.innerHTML = INTERSECTED.userData.artdes;
+  modal_title.innerHTML = 'Title : ' + INTERSECTED.userData.artid;
+  modal_name.innerHTML = 'Author : ' + INTERSECTED.userData.aname;
+  modal_narrative.innerHTML = 'Narrative: ' + INTERSECTED.userData.Narrative;
+  modal_desc.innerHTML = 'Description: ' + INTERSECTED.userData.artdes;
   modal_img.src = INTERSECTED.userData.manimg;
   var close = document.getElementById("close");
   close.addEventListener("click", function () {
@@ -39001,7 +39003,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55133" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50611" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

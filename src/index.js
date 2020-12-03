@@ -39,7 +39,7 @@ function init() {
    scene = new Scene();
     mouse = new Vector2();
     raycaster = new Raycaster();
-    scene.background = new Color("skyblue");
+   //  scene.background = new Color("skyblue");
     clock = new Clock(true);
    const spinner = document.getElementById("spinner");
       function hideSpinner() {
@@ -77,6 +77,7 @@ function init() {
       //   stats.end();
     });
 }
+
 // function initGui() {
 //    gui = new dat.GUI();
 //    window.gui = gui;
@@ -97,7 +98,8 @@ function createLights() {
 }
 
 function createRenderer() {
-   renderer = new WebGLRenderer({ antialias: true});
+   renderer = new WebGLRenderer({ alpha: true , antialias: true});
+   renderer.setClearColor(0xfcba03, 0);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.physicallyCorrectLights = true;
@@ -223,10 +225,10 @@ function DisplayInfo(){
     let modal_desc = document.getElementById("desc");
     let modal_img = document.getElementById("modal-img");   
     let modal_narrative = document.getElementById("narrative");
-    modal_title.innerHTML = INTERSECTED.userData.artid;
-    modal_name.innerHTML = INTERSECTED.userData.aname;
-    modal_narrative.innerHTML =INTERSECTED.userData.Narrative; 
-    modal_desc.innerHTML = INTERSECTED.userData.artdes;
+    modal_title.innerHTML = 'Title : ' + INTERSECTED.userData.artid;
+    modal_name.innerHTML = 'Author : ' + INTERSECTED.userData.aname;
+    modal_narrative.innerHTML = 'Narrative: ' + INTERSECTED.userData.Narrative; 
+    modal_desc.innerHTML = 'Description: '+ INTERSECTED.userData.artdes;
     modal_img.src = INTERSECTED.userData.manimg;
     let close = document.getElementById("close");
     close.addEventListener("click", () => {
