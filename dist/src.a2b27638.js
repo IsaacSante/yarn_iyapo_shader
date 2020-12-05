@@ -37489,9 +37489,10 @@ if (DEBUG) {
   window.THREE = THREE;
 }
 
-var container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED;
+var container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED, newMesh, line, lineGeom, lineMat;
 var time, clock, repoData, repoLength, raycaster;
-var stats; // let gui;
+var stats;
+var matchesArray; // let gui;
 
 var animateNotIntersected = true;
 
@@ -37506,7 +37507,10 @@ function init() {
 
   function hideSpinner() {
     spinner.classList.add("hide");
-  }
+  } // adress where data is coming from
+  //https://glitch.com/edit/#!/iyapo-repo
+  //fetching manuscript data...
+
 
   fetch('https://iyapo-repo.glitch.me/mynewdata', {
     mode: 'cors',
@@ -37520,6 +37524,19 @@ function init() {
     repoLength = repoData.length;
     hideSpinner();
     createGeometries();
+  }).catch(function (e) {
+    return console.error(e);
+  }); //fetching artifact data...
+
+  fetch('https://iyapo-repo.glitch.me/artifacts', {
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
+  }).then(function (resp) {
+    return resp.json();
+  }).then(function (data) {
+    createArtifacts(data);
   }).catch(function (e) {
     return console.error(e);
   });
@@ -37679,23 +37696,76 @@ function createGeometries() {
   }
 }
 
+function createArtifacts(data) {
+  var ArtifactGeo = new THREE.SphereBufferGeometry(1.5, 32, 32);
+  var Artifactmaterial = new THREE.MeshLambertMaterial({
+    color: 0xFFFFFF,
+    opacity: 1,
+    transparent: true
+  });
+  var geoFilter = scene.children.filter(function (x) {
+    return x.type == "Mesh";
+  });
+
+  var _loop = function _loop(a) {
+    newMesh = new THREE.Mesh(ArtifactGeo, Artifactmaterial);
+    newMesh.name = 'Artifacts';
+    newMesh.userData = data[a];
+    scene.add(newMesh);
+    var arrayMatches = geoFilter.filter(function (y) {
+      return y.userData.manid == data[a].manid;
+    });
+
+    for (var b = 0; b < arrayMatches.length; b++) {
+      lineGeom = new THREE.Geometry();
+      lineGeom.vertices.push(newMesh.position);
+      lineGeom.vertices.push(arrayMatches[b].position);
+      lineMat = new THREE.LineBasicMaterial({
+        color: "white"
+      });
+      line = new THREE.Line(lineGeom, lineMat);
+      scene.add(line);
+      matchesArray = arrayMatches[b].position;
+    }
+  };
+
+  for (var a = 0; a < data.length; a++) {
+    _loop(a);
+  }
+}
+
 function BoxDefaultMovement() {
   var sphere = scene.children.filter(function (child) {
     return child.type == "Mesh";
   });
 
   for (var i = 0, il = sphere.length; i < il; i++) {
-    sphere[i].position.x = 60 * Math.tan(time + i);
-    sphere[i].position.y = 30 * Math.cos(time + i * 1.1);
-    sphere[i].position.z = 20 * Math.cos(time + i * 1);
+    sphere[i].position.x = 50 * Math.tan(time + i);
+    sphere[i].position.y = 50 * Math.cos(time + i * 1.1);
+    sphere[i].position.z = 50 * Math.cos(time + i * 1);
   }
 }
 
 function animate() {
   time = 0.0001 * Date.now();
   BoxDefaultMovement();
+
+  if (matchesArray) {
+    newMesh.position.set(matchesArray);
+  }
+
   controls.update();
   renderer.render(scene, camera);
+
+  if (line) {
+    var LineArray = scene.children.filter(function (child) {
+      return child.type == "Line";
+    });
+
+    for (var i = 0, il = LineArray.length; i < il; i++) {
+      LineArray[i].geometry.verticesNeedUpdate = true;
+    }
+  }
 }
 
 function createControls() {
@@ -39003,7 +39073,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58032" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58116" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

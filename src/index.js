@@ -15,6 +15,12 @@ import {
     Clock,
     Raycaster,
     Vector2,
+    Vector3,
+    LineBasicMaterial,
+    BufferGeometry,
+    Line,
+    Geometry,
+    Fog,
   } from "three";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -28,9 +34,10 @@ const DEBUG = false; // Set to false in production
 if(DEBUG) {
     window.THREE = THREE;
 }
-let container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED;
+let container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED, newMesh, line, lineGeom, lineMat;
 let time, clock, repoData, repoLength, raycaster;
 let stats;
+let matchesArray;
 // let gui;
 let animateNotIntersected = true;
 
@@ -45,6 +52,9 @@ function init() {
       function hideSpinner() {
       spinner.classList.add("hide");
    }
+   // adress where data is coming from
+   //https://glitch.com/edit/#!/iyapo-repo
+   //fetching manuscript data...
     fetch('https://iyapo-repo.glitch.me/mynewdata', {
         mode: 'cors',
         headers: {
@@ -57,6 +67,17 @@ function init() {
          hideSpinner();
          createGeometries();
     }).catch(e => console.error(e));
+    //fetching artifact data...
+    fetch('https://iyapo-repo.glitch.me/artifacts', {
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin':'*'
+      }
+  }).then(resp => resp.json())
+  .then(data => {
+      createArtifacts(data)
+  }).catch(e => console.error(e));
+
     createRenderer();
     createCamera();
     createLights();
@@ -84,6 +105,7 @@ function init() {
 //    document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
 //    gui.add(params, 'mixShape', 0, 1.00001);
 // }
+
 function createCamera() {
     const aspect = container.clientWidth / container.clientHeight;
     camera = new PerspectiveCamera(35, aspect, 0.1, 1000);
@@ -196,26 +218,63 @@ function createGeometries() {
     }
 }
 
+function createArtifacts(data){
+let ArtifactGeo = new SphereBufferGeometry(1.5, 32, 32);
+   let Artifactmaterial = new MeshLambertMaterial({
+         color: 0xFFFFFF,
+         opacity: 1,
+         transparent: true,
+   });
+let geoFilter = scene.children.filter(x => x.type == "Mesh");
+   for(let a = 0; a < data.length; a++){
+        newMesh = new Mesh(ArtifactGeo, Artifactmaterial);
+        newMesh.name = 'Artifacts';
+        newMesh.userData = data[a]
+        scene.add(newMesh);
+        let arrayMatches = geoFilter.filter(y => y.userData.manid == data[a].manid);
+            for(let b = 0; b < arrayMatches.length; b++) {
+                  lineGeom = new Geometry();
+                  lineGeom.vertices.push(newMesh.position);
+                  lineGeom.vertices.push(arrayMatches[b].position);
+                     lineMat = new LineBasicMaterial({
+                     color: "white"
+                     });
+                  line = new Line(lineGeom, lineMat);
+                  scene.add(line);
+                  matchesArray = arrayMatches[b].position;
+            }
+   }
+}
+
 function BoxDefaultMovement(){
     let sphere = scene.children.filter(child => child.type == "Mesh");
     for (var i = 0, il = sphere.length; i < il; i++) {
-      sphere[i].position.x = 60 * Math.tan(time + i); 
-      sphere[i].position.y = 30 * Math.cos(time + i * 1.1);
-      sphere[i].position.z = 20 * Math.cos(time + i * 1); 
+      sphere[i].position.x = 50 * Math.tan(time + i); 
+      sphere[i].position.y = 50 * Math.cos(time + i * 1.1);
+      sphere[i].position.z = 50 * Math.cos(time + i * 1); 
      }
+
 }
 
 function animate(){
    time = 0.0001 * Date.now();
     BoxDefaultMovement();
+    if (matchesArray){
+      newMesh.position.set(matchesArray)
+    }
     controls.update();
     renderer.render(scene, camera)
+    if (line){
+      let LineArray = scene.children.filter(child => child.type == "Line");
+      for (var i = 0, il = LineArray.length; i < il; i++) {
+         LineArray[i].geometry.verticesNeedUpdate = true;
+      }
+    }
 }
 
 function createControls() {
     controls = new OrbitControls(camera, renderer.domElement);
 }
-
 
 function DisplayInfo(){
     let modal = document.getElementById("newcont")

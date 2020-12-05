@@ -164,9 +164,7 @@ body {
     }
 
     canvas {
-      background: linear-gradient(-25deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-	    background-size: 400% 400%;
-	    /* animation: gradient 30s ease infinite; */
+      background-color:#111111;
     }
 
     @keyframes gradient {
