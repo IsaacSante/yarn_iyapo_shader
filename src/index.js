@@ -279,20 +279,32 @@ function createControls() {
 function DisplayInfo(){
     let modal = document.getElementById("newcont")
     modal.classList.add("show");
+    let close = document.getElementById("close");
+    close.addEventListener("click", () => {
+        modal.classList.remove("show");
+    });
     let modal_name = document.getElementById("name");
     let modal_title = document.getElementById("title");
     let modal_desc = document.getElementById("desc");
     let modal_img = document.getElementById("modal-img");   
     let modal_narrative = document.getElementById("narrative");
+    let modal_view = document.getElementById("view");
+    modal_view.innerHTML = 'An Iyapo Repository manuscript';
     modal_title.innerHTML = 'Title : ' + INTERSECTED.userData.artid;
     modal_name.innerHTML = 'Author : ' + INTERSECTED.userData.aname;
     modal_narrative.innerHTML = 'Narrative: ' + INTERSECTED.userData.Narrative; 
     modal_desc.innerHTML = 'Description: '+ INTERSECTED.userData.artdes;
     modal_img.src = INTERSECTED.userData.manimg;
-    let close = document.getElementById("close");
-    close.addEventListener("click", () => {
-        modal.classList.remove("show");
-    });
+    if (INTERSECTED.userData.artid){
+      modal_view.innerHTML = 'An Iyapo Repository artifact';
+      modal_title.innerHTML = INTERSECTED.userData.artid;
+      modal_name.innerHTML = INTERSECTED.userData.artname;
+      modal_narrative.innerHTML = 'From: ' + INTERSECTED.userData.manid; 
+      modal_desc.innerHTML = '';
+    }
+   //  if (INTERSECTED.userData.art.jpg.folder){
+   //    modal_img.src = INTERSECTED.userData.art.jpg.folder;
+   //  }
   }
 function filterObjects() {
     //Narrative Buttons//
@@ -1055,6 +1067,7 @@ function onMouseClick(event) {
   if (intersects.length > 0){
    if (INTERSECTED != intersects[0].object) {
        INTERSECTED = intersects[0].object;
+       console.log(INTERSECTED.userData)
        DisplayInfo();
        renderer.setAnimationLoop(null);
    }else{

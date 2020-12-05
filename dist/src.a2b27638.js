@@ -37775,20 +37775,33 @@ function createControls() {
 function DisplayInfo() {
   var modal = document.getElementById("newcont");
   modal.classList.add("show");
+  var close = document.getElementById("close");
+  close.addEventListener("click", function () {
+    modal.classList.remove("show");
+  });
   var modal_name = document.getElementById("name");
   var modal_title = document.getElementById("title");
   var modal_desc = document.getElementById("desc");
   var modal_img = document.getElementById("modal-img");
   var modal_narrative = document.getElementById("narrative");
+  var modal_view = document.getElementById("view");
+  modal_view.innerHTML = 'An Iyapo Repository manuscript';
   modal_title.innerHTML = 'Title : ' + INTERSECTED.userData.artid;
   modal_name.innerHTML = 'Author : ' + INTERSECTED.userData.aname;
   modal_narrative.innerHTML = 'Narrative: ' + INTERSECTED.userData.Narrative;
   modal_desc.innerHTML = 'Description: ' + INTERSECTED.userData.artdes;
   modal_img.src = INTERSECTED.userData.manimg;
-  var close = document.getElementById("close");
-  close.addEventListener("click", function () {
-    modal.classList.remove("show");
-  });
+
+  if (INTERSECTED.userData.artid) {
+    modal_view.innerHTML = 'An Iyapo Repository artifact';
+    modal_title.innerHTML = INTERSECTED.userData.artid;
+    modal_name.innerHTML = INTERSECTED.userData.artname;
+    modal_narrative.innerHTML = 'From: ' + INTERSECTED.userData.manid;
+    modal_desc.innerHTML = '';
+  } //  if (INTERSECTED.userData.art.jpg.folder){
+  //    modal_img.src = INTERSECTED.userData.art.jpg.folder;
+  //  }
+
 }
 
 function filterObjects() {
@@ -38999,6 +39012,7 @@ function onMouseClick(event) {
   if (intersects.length > 0) {
     if (INTERSECTED != intersects[0].object) {
       INTERSECTED = intersects[0].object;
+      console.log(INTERSECTED.userData);
       DisplayInfo();
       renderer.setAnimationLoop(null);
     } else {
@@ -39073,7 +39087,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58116" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55535" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
