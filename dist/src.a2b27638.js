@@ -37459,59 +37459,56 @@ var MapControls = function (object, domElement) {
 exports.MapControls = MapControls;
 MapControls.prototype = Object.create(_threeModule.EventDispatcher.prototype);
 MapControls.prototype.constructor = MapControls;
-},{"../../../build/three.module.js":"node_modules/three/build/three.module.js"}],"node_modules/stats.js/build/stats.min.js":[function(require,module,exports) {
-var define;
-// stats.js - http://github.com/mrdoob/stats.js
-(function(f,e){"object"===typeof exports&&"undefined"!==typeof module?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
-u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
-1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
-b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
-
-},{}],"src/index.js":[function(require,module,exports) {
+},{"../../../build/three.module.js":"node_modules/three/build/three.module.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
-var THREE = _interopRequireWildcard(require("three"));
+var _three = require("three");
 
 var _OrbitControls = require("three/examples/jsm/controls/OrbitControls");
 
-var Stats = _interopRequireWildcard(require("stats.js"));
-
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-
-// import {params} from './helper.js';
-// import * as dat from 'dat.gui';
-//REMOVE this in production
-var DEBUG = false; // Set to false in production
-
-if (DEBUG) {
-  window.THREE = THREE;
-}
-
 var container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED, newMesh, line, lineGeom, lineMat;
-var time, clock, repoData, repoLength, raycaster;
-var stats;
-var matchesArray; // let gui;
-
+var time, clock, repoData, repoLength, raycaster, artifactData;
+var matchesArray;
 var animateNotIntersected = true;
+fetch('https://iyapo-repo.glitch.me/artifacts', {
+  mode: 'cors',
+  headers: {
+    'Access-Control-Allow-Origin': '*'
+  }
+}).then(function (resp) {
+  return resp.json();
+}).then(function (data) {
+  artifactData = data;
+  fetchDataAll();
+}).catch(function (e) {
+  return console.error(e);
+});
+var spinner = document.getElementById("spinner");
+
+function hideSpinner() {
+  spinner.classList.add("hide");
+}
 
 function init() {
   container = document.querySelector(".container");
-  scene = new THREE.Scene();
-  mouse = new THREE.Vector2();
-  raycaster = new THREE.Raycaster(); //  scene.background = new Color("skyblue");
+  scene = new _three.Scene();
+  mouse = new _three.Vector2();
+  raycaster = new _three.Raycaster();
+  clock = new _three.Clock(true);
+  createRenderer();
+  createCamera();
+  createLights();
+  createControls();
+  renderer.setAnimationLoop(function () {
+    animate();
+    renderer.render(scene, camera);
+  });
+}
 
-  clock = new THREE.Clock(true);
-  var spinner = document.getElementById("spinner");
-
-  function hideSpinner() {
-    spinner.classList.add("hide");
-  } // adress where data is coming from
+function fetchDataAll() {
+  // adress where data is coming from
   //https://glitch.com/edit/#!/iyapo-repo
   //fetching manuscript data...
-
-
   fetch('https://iyapo-repo.glitch.me/mynewdata', {
     mode: 'cors',
     headers: {
@@ -37526,61 +37523,24 @@ function init() {
     createGeometries();
   }).catch(function (e) {
     return console.error(e);
-  }); //fetching artifact data...
-
-  fetch('https://iyapo-repo.glitch.me/artifacts', {
-    mode: 'cors',
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    }
-  }).then(function (resp) {
-    return resp.json();
-  }).then(function (data) {
-    createArtifacts(data);
-  }).catch(function (e) {
-    return console.error(e);
   });
-  createRenderer();
-  createCamera();
-  createLights();
-  createControls(); // initGui();
-
-  if (DEBUG) {
-    window.scene = scene;
-    window.camera = camera;
-    window.controls = controls;
-    stats = Stats.default();
-    document.body.appendChild(stats.dom);
-  }
-
-  renderer.setAnimationLoop(function () {
-    //   stats.begin();
-    animate();
-    renderer.render(scene, camera); //   stats.end();
-  });
-} // function initGui() {
-//    gui = new dat.GUI();
-//    window.gui = gui;
-//    document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
-//    gui.add(params, 'mixShape', 0, 1.00001);
-// }
-
+}
 
 function createCamera() {
   var aspect = container.clientWidth / container.clientHeight;
-  camera = new THREE.PerspectiveCamera(35, aspect, 0.1, 1000);
+  camera = new _three.PerspectiveCamera(35, aspect, 0.1, 1000);
   camera.position.set(100, 50, 150);
 }
 
 function createLights() {
-  var directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+  var directionalLight = new _three.DirectionalLight(0xffffff, 5);
   directionalLight.position.set(5, 5, 10);
-  var hemisphereLight = new THREE.HemisphereLight(0xddeeff, 0x202020, 3);
+  var hemisphereLight = new _three.HemisphereLight(0xddeeff, 0x202020, 3);
   scene.add(directionalLight, hemisphereLight);
 }
 
 function createRenderer() {
-  renderer = new THREE.WebGLRenderer({
+  renderer = new _three.WebGLRenderer({
     alpha: true,
     antialias: true
   });
@@ -37593,32 +37553,32 @@ function createRenderer() {
 }
 
 function createGeometries() {
-  var geometry = new THREE.BoxBufferGeometry(3, 3, 3);
-  var geometry2 = new THREE.SphereBufferGeometry(3, 3, 3);
-  var geometry3 = new THREE.DodecahedronBufferGeometry(3, 3, 3);
-  var geometry4 = new THREE.ConeBufferGeometry(5, 4, 3);
-  var geometry5 = new THREE.TorusBufferGeometry(3, 1, 16, 100);
-  var material = new THREE.MeshLambertMaterial({
+  var geometry = new _three.BoxBufferGeometry(3, 3, 3);
+  var geometry2 = new _three.SphereBufferGeometry(3, 3, 3);
+  var geometry3 = new _three.DodecahedronBufferGeometry(3, 3, 3);
+  var geometry4 = new _three.ConeBufferGeometry(5, 4, 3);
+  var geometry5 = new _three.TorusBufferGeometry(3, 1, 16, 100);
+  var material = new _three.MeshLambertMaterial({
     color: 0xff0000,
     opacity: 1,
     transparent: true
   });
-  var material2 = new THREE.MeshLambertMaterial({
+  var material2 = new _three.MeshLambertMaterial({
     color: 0xFFFF00,
     opacity: 1,
     transparent: true
   });
-  var material3 = new THREE.MeshLambertMaterial({
+  var material3 = new _three.MeshLambertMaterial({
     color: 0x0000FF,
     opacity: 1,
     transparent: true
   });
-  var material4 = new THREE.MeshLambertMaterial({
+  var material4 = new _three.MeshLambertMaterial({
     color: 0x00FF00,
     opacity: 1,
     transparent: true
   });
-  var material5 = new THREE.MeshLambertMaterial({
+  var material5 = new _three.MeshLambertMaterial({
     color: 0x6D8C2D,
     opacity: 1,
     transparent: true
@@ -37640,7 +37600,7 @@ function createGeometries() {
   });
 
   for (var i = 0; i < Apocalyptic.length; i++) {
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new _three.Mesh(geometry, material);
     mesh.position.x = Math.random() * 50 - 50;
     mesh.position.y = Math.random() * 10 - 10;
     mesh.position.z = Math.random() * 6 - 1;
@@ -37650,7 +37610,7 @@ function createGeometries() {
   }
 
   for (var _i = 0; _i < Utopian.length; _i++) {
-    mesh = new THREE.Mesh(geometry2, material2);
+    mesh = new _three.Mesh(geometry2, material2);
     mesh.position.x = Math.random() * 50 - 50;
     mesh.position.y = Math.random() * 10 - 10;
     mesh.position.z = Math.random() * 6 - 1;
@@ -37660,7 +37620,7 @@ function createGeometries() {
   }
 
   for (var _i2 = 0; _i2 < Dystopian.length; _i2++) {
-    mesh = new THREE.Mesh(geometry3, material3);
+    mesh = new _three.Mesh(geometry3, material3);
     mesh.position.x = Math.random() * 50 - 50;
     mesh.position.y = Math.random() * 10 - 10;
     mesh.position.z = Math.random() * 6 - 1;
@@ -37670,7 +37630,7 @@ function createGeometries() {
   }
 
   for (var _i3 = 0; _i3 < Revolutionary.length; _i3++) {
-    mesh = new THREE.Mesh(geometry5, material5);
+    mesh = new _three.Mesh(geometry5, material5);
     mesh.position.x = Math.random() * 50 - 50;
     mesh.position.y = Math.random() * 10 - 10;
     mesh.position.z = Math.random() * 6 - 1;
@@ -37683,7 +37643,7 @@ function createGeometries() {
   }
 
   for (var _i4 = 0; _i4 < NoDomain.length; _i4++) {
-    mesh = new THREE.Mesh(geometry4, material4);
+    mesh = new _three.Mesh(geometry4, material4);
     mesh.position.x = Math.random() * 100 - 50;
     mesh.position.y = Math.random() * 10 - 10;
     mesh.position.z = Math.random() * 10 - 1;
@@ -37694,11 +37654,13 @@ function createGeometries() {
     mesh.name = 'NoDomainGeo';
     scene.add(mesh);
   }
+
+  createArtifacts(artifactData);
 }
 
-function createArtifacts(data) {
-  var ArtifactGeo = new THREE.SphereBufferGeometry(1.5, 32, 32);
-  var Artifactmaterial = new THREE.MeshLambertMaterial({
+function createArtifacts(artifactData) {
+  var ArtifactGeo = new _three.SphereBufferGeometry(1.5, 32, 32);
+  var Artifactmaterial = new _three.MeshLambertMaterial({
     color: 0xFFFFFF,
     opacity: 1,
     transparent: true
@@ -37708,28 +37670,28 @@ function createArtifacts(data) {
   });
 
   var _loop = function _loop(a) {
-    newMesh = new THREE.Mesh(ArtifactGeo, Artifactmaterial);
+    newMesh = new _three.Mesh(ArtifactGeo, Artifactmaterial);
     newMesh.name = 'Artifacts';
-    newMesh.userData = data[a];
+    newMesh.userData = artifactData[a];
     scene.add(newMesh);
     var arrayMatches = geoFilter.filter(function (y) {
-      return y.userData.manid == data[a].manid;
+      return y.userData.manid == artifactData[a].manid;
     });
 
     for (var b = 0; b < arrayMatches.length; b++) {
-      lineGeom = new THREE.Geometry();
+      lineGeom = new _three.Geometry();
       lineGeom.vertices.push(newMesh.position);
       lineGeom.vertices.push(arrayMatches[b].position);
-      lineMat = new THREE.LineBasicMaterial({
+      lineMat = new _three.LineBasicMaterial({
         color: "white"
       });
-      line = new THREE.Line(lineGeom, lineMat);
+      line = new _three.Line(lineGeom, lineMat);
       scene.add(line);
       matchesArray = arrayMatches[b].position;
     }
   };
 
-  for (var a = 0; a < data.length; a++) {
+  for (var a = 0; a < artifactData.length; a++) {
     _loop(a);
   }
 }
@@ -37798,10 +37760,11 @@ function DisplayInfo() {
     modal_name.innerHTML = INTERSECTED.userData.artname;
     modal_narrative.innerHTML = 'From: ' + INTERSECTED.userData.manid;
     modal_desc.innerHTML = '';
-  } //  if (INTERSECTED.userData.art.jpg.folder){
-  //    modal_img.src = INTERSECTED.userData.art.jpg.folder;
-  //  }
+  }
 
+  if (INTERSECTED.userData.jpg) {
+    modal_img.src = INTERSECTED.userData.jpg;
+  }
 }
 
 function filterObjects() {
@@ -39033,25 +38996,20 @@ window.addEventListener("resize", onWindowResize, false);
 filterObjects();
 var currentText = document.getElementById('current');
 var wrapper = document.getElementById('filterMenu');
-wrapper.addEventListener('click', function (event) {
-  var isButton = event.target.nodeName === 'BUTTON';
+wrapper.addEventListener('click', function (event) {//   const isButton = event.target.nodeName === 'li';
+  //   if (!isButton) {
+  //     return;
+  //   }
+  // currentText.innerHTML = event.target.id
+}); // const wrapper2 = document.getElementById('DomainMenu');
+// wrapper2.addEventListener('click', (event) => {
+//   const isButton = event.target.nodeName === 'BUTTON';
+//   if (!isButton) {
+//     return;
+//   }
+//   currentText.innerHTML = event.target.id
+// })
 
-  if (!isButton) {
-    return;
-  }
-
-  currentText.innerHTML = event.target.id; //   console.dir(event.target.id);
-});
-var wrapper2 = document.getElementById('DomainMenu');
-wrapper2.addEventListener('click', function (event) {
-  var isButton = event.target.nodeName === 'BUTTON';
-
-  if (!isButton) {
-    return;
-  }
-
-  currentText.innerHTML = event.target.id;
-});
 var closeButton = document.getElementById('close');
 closeButton.addEventListener('click', function () {
   renderer.setAnimationLoop(function () {
@@ -39059,7 +39017,7 @@ closeButton.addEventListener('click', function () {
     renderer.render(scene, camera);
   });
 });
-},{"three":"node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"node_modules/three/examples/jsm/controls/OrbitControls.js","stats.js":"node_modules/stats.js/build/stats.min.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"three":"node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"node_modules/three/examples/jsm/controls/OrbitControls.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -39087,7 +39045,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55535" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62822" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -9,11 +9,39 @@
     <title>Iyapo Repo Beta</title>
 </head>
 <body>
-  <div class="corner-text">
-      <h1>Iyapo Repository</h1>
-      <p>Currently viewing 
-        <span id="current">all narratives & domains</span>
-      </p>
+  <div class="title">
+<p><span class='first'>Iyapo Repository</span><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span id="current">Currently viewing all Narratives & Domains</span></p>
+  </div>
+  <div class="menu-area">
+    <ul>
+      <li id="filterMenu">Narrative
+        <ul class="dropdown">  
+          <li id="all narratives">All Narratives</li>
+          <li id="apocalyptic narratives">Apocalytic</li>
+          <li id="utopian narratives">Utopian</li>
+          <li id="dystopian narratives">Dystopian</li>
+          <li id="revolutionary narratives">Revolutionary</li>
+          <li id="no narrative">No Narrative</li>
+        </ul>
+      </li>
+      <li>Domain
+        <ul class="dropdown">
+          <li id="all domains">All Domains</li>
+          <li id="politics domain">Politcs</li>
+          <li id="environment domain">Environment</li>
+          <li id="space travel domain">Space Travel</li>
+          <li id="education domain">Education</li>
+          <li id="game domain">Game</li>
+          <li id="security domain">Security</li>
+          <li id="fashion domain">Fashion</li>
+          <li id="food domain">Food</li>
+          <li id="health domain">Health</li>
+          <li id="music domain">Music</li>
+          <li id="no domains">No Domain</li>
+        </ul>
+      </li>
+      <li>Object</li>
+    </ul>
   </div>
     <div class="container"></div>
     <div id="spinner"></div> 
@@ -35,28 +63,6 @@
            <img src="" alt="" class="modal-img" id="modal-img">
            <button class="close" id="close">X</button>
       </div>
-    </div>
-    <div id="filterMenu" class="filterMenu">
-          <button id="all narratives">All Narratives</button>
-          <button id="apocalyptic narratives">Apocalytic</button>
-          <button id="utopian narratives">Utopian</button>
-          <button id="dystopian narratives">Dystopian</button>
-          <button id="revolutionary narratives">Revolutionary</button>
-          <button id="no narrative">No Narrative</button>
-    </div>
-    <div id="DomainMenu" class="DomainMenu">
-          <button id="all domains">All Domains</button>
-          <button id="politics domain">Politcs</button>
-          <button id="environment domain">Environment</button>
-          <button id="space travel domain">Space Travel</button>
-          <button id="education domain">Education</button>
-          <button id="game domain">Game</button>
-          <button id="security domain">Security</button>
-          <button id="fashion domain">Fashion</button>
-          <button id="food domain">Food</button>
-          <button id="health domain">Health</button>
-          <button id="music domain">Music</button>
-          <button id="no domains">No Domain</button>
     </div>
         <script src="src/index.js"></script>
 </body>

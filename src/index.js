@@ -4,7 +4,6 @@ import {
     WebGLRenderer,
     Mesh,
     MeshLambertMaterial,
-    Color,
     SphereBufferGeometry,
     BoxBufferGeometry,
     DodecahedronBufferGeometry,
@@ -15,96 +14,69 @@ import {
     Clock,
     Raycaster,
     Vector2,
-    Vector3,
     LineBasicMaterial,
-    BufferGeometry,
     Line,
     Geometry,
-    Fog,
   } from "three";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-// import {params} from './helper.js';
-// import * as dat from 'dat.gui';
-import * as Stats from 'stats.js';
 
-import * as THREE from 'three'; //REMOVE this in production
-
-const DEBUG = false; // Set to false in production
-if(DEBUG) {
-    window.THREE = THREE;
-}
 let container, scene, camera, renderer, controls, mesh, mouse, INTERSECTED, newMesh, line, lineGeom, lineMat;
-let time, clock, repoData, repoLength, raycaster;
-let stats;
+let time, clock, repoData, repoLength, raycaster, artifactData; 
 let matchesArray;
-// let gui;
 let animateNotIntersected = true;
+
+fetch('https://iyapo-repo.glitch.me/artifacts', {
+mode: 'cors',
+headers: {
+  'Access-Control-Allow-Origin':'*'
+}
+}).then(resp => resp.json())
+.then(data => {
+  artifactData = data;
+  fetchDataAll();
+}).catch(e => console.error(e));
+
+const spinner = document.getElementById("spinner");
+function hideSpinner() {
+spinner.classList.add("hide");
+}
 
 function init() {
    container = document.querySelector(".container");
    scene = new Scene();
     mouse = new Vector2();
     raycaster = new Raycaster();
-   //  scene.background = new Color("skyblue");
     clock = new Clock(true);
-   const spinner = document.getElementById("spinner");
-      function hideSpinner() {
-      spinner.classList.add("hide");
-   }
-   // adress where data is coming from
-   //https://glitch.com/edit/#!/iyapo-repo
-   //fetching manuscript data...
-    fetch('https://iyapo-repo.glitch.me/mynewdata', {
-        mode: 'cors',
-        headers: {
-          'Access-Control-Allow-Origin':'*'
-        }
-    }).then(resp => resp.json())
-    .then(data => {
-        repoData = data ;
-        repoLength = repoData.length;
-         hideSpinner();
-         createGeometries();
-    }).catch(e => console.error(e));
-    //fetching artifact data...
-    fetch('https://iyapo-repo.glitch.me/artifacts', {
-      mode: 'cors',
-      headers: {
-        'Access-Control-Allow-Origin':'*'
-      }
-  }).then(resp => resp.json())
-  .then(data => {
-      createArtifacts(data)
-  }).catch(e => console.error(e));
-
     createRenderer();
     createCamera();
     createLights();
     createControls();
-  // initGui();
-    if(DEBUG) {
-        window.scene = scene;
-        window.camera = camera;
-        window.controls = controls;
-        stats = Stats.default();
-        document.body.appendChild( stats.dom );
-    }
-
     renderer.setAnimationLoop(() => {
-      //   stats.begin();
          animate();
         renderer.render(scene, camera);
-      //   stats.end();
     });
 }
 
-// function initGui() {
-//    gui = new dat.GUI();
-//    window.gui = gui;
-//    document.querySelector('.dg').style.zIndex = 99; //fix dat.gui hidden
-//    gui.add(params, 'mixShape', 0, 1.00001);
-// }
+function fetchDataAll() {
+// adress where data is coming from
+//https://glitch.com/edit/#!/iyapo-repo
+//fetching manuscript data...
+fetch('https://iyapo-repo.glitch.me/mynewdata', {
+  mode: 'cors',
+  headers: {
+    'Access-Control-Allow-Origin':'*'
+  }
+}).then(resp => resp.json())
+.then(data => {
+  repoData = data ;
+  repoLength = repoData.length;
+   hideSpinner();
+   createGeometries();
+}).catch(e => console.error(e));
+
+}
+
 
 function createCamera() {
     const aspect = container.clientWidth / container.clientHeight;
@@ -135,7 +107,7 @@ function createGeometries() {
     const geometry3 = new DodecahedronBufferGeometry(3, 3, 3);
     const geometry4 = new ConeBufferGeometry(5, 4, 3);
     const geometry5 = new TorusBufferGeometry( 3, 1, 16, 100 );
-    const material = new THREE.MeshLambertMaterial({
+    const material = new MeshLambertMaterial({
         color: 0xff0000,
         opacity: 1,
         transparent: true,
@@ -160,11 +132,11 @@ function createGeometries() {
         opacity: 1,
         transparent: true,
       });
-    let Apocalyptic = repoData.filter(child => child.Narrative == "Apocalyptic");
-    let Utopian = repoData.filter(child => child.Narrative == "Utopian");
-    let Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
-    let Revolutionary = repoData.filter(child => child.Narrative == "Revolutionary");
-    let NoDomain = repoData.filter(child => child.Narrative == "-na-");
+    const Apocalyptic = repoData.filter(child => child.Narrative == "Apocalyptic");
+    const Utopian = repoData.filter(child => child.Narrative == "Utopian");
+    const Dystopian = repoData.filter(child => child.Narrative == "Dystopian");
+    const Revolutionary = repoData.filter(child => child.Narrative == "Revolutionary");
+    const NoDomain = repoData.filter(child => child.Narrative == "-na-");
     for ( let i = 0; i < Apocalyptic.length; i ++ ){
      mesh = new Mesh(geometry, material);
      mesh.position.x = Math.random() * 50 - 50;
@@ -216,35 +188,37 @@ function createGeometries() {
         mesh.name = 'NoDomainGeo';
         scene.add(mesh);
     }
+    createArtifacts(artifactData)
 }
 
-function createArtifacts(data){
-let ArtifactGeo = new SphereBufferGeometry(1.5, 32, 32);
-   let Artifactmaterial = new MeshLambertMaterial({
-         color: 0xFFFFFF,
-         opacity: 1,
-         transparent: true,
-   });
-let geoFilter = scene.children.filter(x => x.type == "Mesh");
-   for(let a = 0; a < data.length; a++){
-        newMesh = new Mesh(ArtifactGeo, Artifactmaterial);
-        newMesh.name = 'Artifacts';
-        newMesh.userData = data[a]
-        scene.add(newMesh);
-        let arrayMatches = geoFilter.filter(y => y.userData.manid == data[a].manid);
-            for(let b = 0; b < arrayMatches.length; b++) {
-                  lineGeom = new Geometry();
-                  lineGeom.vertices.push(newMesh.position);
-                  lineGeom.vertices.push(arrayMatches[b].position);
-                     lineMat = new LineBasicMaterial({
-                     color: "white"
-                     });
-                  line = new Line(lineGeom, lineMat);
-                  scene.add(line);
-                  matchesArray = arrayMatches[b].position;
-            }
+function createArtifacts(artifactData){
+   let ArtifactGeo = new SphereBufferGeometry(1.5, 32, 32);
+      let Artifactmaterial = new MeshLambertMaterial({
+            color: 0xFFFFFF,
+            opacity: 1,
+            transparent: true,
+      });
+      let geoFilter = scene.children.filter(x => x.type == "Mesh"); 
+      for(let a = 0; a < artifactData.length; a++){
+           newMesh = new Mesh(ArtifactGeo, Artifactmaterial);
+           newMesh.name = 'Artifacts';
+           newMesh.userData = artifactData[a]
+           scene.add(newMesh);
+           let arrayMatches = geoFilter.filter(y => y.userData.manid == artifactData[a].manid);
+               for(let b = 0; b < arrayMatches.length; b++) {
+                     lineGeom = new Geometry();
+                     lineGeom.vertices.push(newMesh.position);
+                     lineGeom.vertices.push(arrayMatches[b].position);
+                        lineMat = new LineBasicMaterial({
+                        color: "white"
+                        });
+                     line = new Line(lineGeom, lineMat);
+                     scene.add(line);
+                     matchesArray = arrayMatches[b].position;
+               }
+      }
    }
-}
+
 
 function BoxDefaultMovement(){
     let sphere = scene.children.filter(child => child.type == "Mesh");
@@ -253,7 +227,6 @@ function BoxDefaultMovement(){
       sphere[i].position.y = 50 * Math.cos(time + i * 1.1);
       sphere[i].position.z = 50 * Math.cos(time + i * 1); 
      }
-
 }
 
 function animate(){
@@ -295,6 +268,7 @@ function DisplayInfo(){
     modal_narrative.innerHTML = 'Narrative: ' + INTERSECTED.userData.Narrative; 
     modal_desc.innerHTML = 'Description: '+ INTERSECTED.userData.artdes;
     modal_img.src = INTERSECTED.userData.manimg;
+
     if (INTERSECTED.userData.artid){
       modal_view.innerHTML = 'An Iyapo Repository artifact';
       modal_title.innerHTML = INTERSECTED.userData.artid;
@@ -302,31 +276,33 @@ function DisplayInfo(){
       modal_narrative.innerHTML = 'From: ' + INTERSECTED.userData.manid; 
       modal_desc.innerHTML = '';
     }
-   //  if (INTERSECTED.userData.art.jpg.folder){
-   //    modal_img.src = INTERSECTED.userData.art.jpg.folder;
-   //  }
-  }
+
+    if (INTERSECTED.userData.jpg){
+      modal_img.src = INTERSECTED.userData.jpg
+    }
+
+}
 function filterObjects() {
     //Narrative Buttons//
-    let AllManuscripts = document.getElementById("all narratives");
-    let ApocalypticFilter = document.getElementById("apocalyptic narratives");
-    let UtopianFilter = document.getElementById("utopian narratives");
-    let DystopianFilter = document.getElementById("dystopian narratives");
-    let RevolutionaryFilter = document.getElementById("revolutionary narratives");
-    let Unfiltered = document.getElementById("no narrative");
+    const AllManuscripts = document.getElementById("all narratives");
+    const ApocalypticFilter = document.getElementById("apocalyptic narratives");
+    const UtopianFilter = document.getElementById("utopian narratives");
+    const DystopianFilter = document.getElementById("dystopian narratives");
+    const RevolutionaryFilter = document.getElementById("revolutionary narratives");
+    const Unfiltered = document.getElementById("no narrative");
     //Domain Buttons//
-    let AllDomainsFilter = document.getElementById("all domains");
-    let PoliticsFilter  = document.getElementById("politics domain");
-    let EnvironmentFilter = document.getElementById("environment domain");
-    let SpaceTravelFilter  = document.getElementById("space travel domain");
-    let EducationFilter = document.getElementById("education domain");
-    let GameFilter = document.getElementById("game domain");
-    let SecurityFilter = document.getElementById("security domain");
-    let FashionFilter = document.getElementById("fashion domain");
-    let FoodFilter = document.getElementById("food domain");
-    let HealthFilter = document.getElementById("health domain");
-    let MusicFilter = document.getElementById("music domain");
-    let NoDomainFilter = document.getElementById("no domains");
+    const AllDomainsFilter = document.getElementById("all domains");
+    const PoliticsFilter  = document.getElementById("politics domain");
+    const EnvironmentFilter = document.getElementById("environment domain");
+    const SpaceTravelFilter  = document.getElementById("space travel domain");
+    const EducationFilter = document.getElementById("education domain");
+    const GameFilter = document.getElementById("game domain");
+    const SecurityFilter = document.getElementById("security domain");
+    const FashionFilter = document.getElementById("fashion domain");
+    const FoodFilter = document.getElementById("food domain");
+    const HealthFilter = document.getElementById("health domain");
+    const MusicFilter = document.getElementById("music domain");
+    const NoDomainFilter = document.getElementById("no domains");
 
     AllManuscripts.addEventListener("click", () => {
         let ApoOpacity = scene.children.filter(child => child.name == "ApoGeo");
@@ -1086,27 +1062,27 @@ function onWindowResize() {
 window.addEventListener("resize", onWindowResize, false);
 filterObjects();
 
+
 let currentText = document.getElementById('current');
 const wrapper = document.getElementById('filterMenu');
 
 wrapper.addEventListener('click', (event) => {
-  const isButton = event.target.nodeName === 'BUTTON';
-  if (!isButton) {
-    return;
-  }
-currentText.innerHTML = event.target.id
-//   console.dir(event.target.id);
+//   const isButton = event.target.nodeName === 'li';
+//   if (!isButton) {
+//     return;
+//   }
+// currentText.innerHTML = event.target.id
 })
 
-const wrapper2 = document.getElementById('DomainMenu');
+// const wrapper2 = document.getElementById('DomainMenu');
 
-wrapper2.addEventListener('click', (event) => {
-  const isButton = event.target.nodeName === 'BUTTON';
-  if (!isButton) {
-    return;
-  }
-  currentText.innerHTML = event.target.id
-})
+// wrapper2.addEventListener('click', (event) => {
+//   const isButton = event.target.nodeName === 'BUTTON';
+//   if (!isButton) {
+//     return;
+//   }
+//   currentText.innerHTML = event.target.id
+// })
 
 
 let closeButton = document.getElementById('close') 
